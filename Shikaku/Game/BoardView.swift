@@ -35,6 +35,12 @@ struct BoardView: View {
             .gesture(dragGesture(geo: geo))
         }
         .aspectRatio(1, contentMode: .fit)
+        // The drawing is many positioned views; VoiceOver, Switch Control
+        // and Voice Control get a plain grid of cells instead, each able to
+        // place, remove and finish rectangles without a drag
+        // (BoardAccessibility.swift).
+        .accessibilityElement(children: .contain)
+        .accessibilityChildren { BoardCellsAccessibility(game: game) }
     }
 
     private func dragGesture(geo: BoardGeometry) -> some Gesture {
@@ -319,6 +325,18 @@ private struct PreviewLayer: View {
         }
         if let rejected = game.rejectedPreview {
             RejectedView(rect: rejected, geo: geo)
+        }
+        // The first corner chosen without dragging (VoiceOver, Switch
+        // Control), waiting for the second.
+        if let corner = game.pendingCorner {
+            let frame: CGRect = geo.rect(for: GridRect(minRow: corner.row, minCol: corner.col,
+                                                       maxRow: corner.row, maxCol: corner.col))
+            Rectangle()
+                .strokeBorder(Theme.inkLine, style: StrokeStyle(lineWidth: 2, dash: [5, 4]))
+                .frame(width: frame.width, height: frame.height)
+                .position(x: frame.midX, y: frame.midY)
+                .allowsHitTesting(false)
+                .accessibilityHidden(true)
         }
     }
 }
