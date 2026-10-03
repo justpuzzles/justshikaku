@@ -78,6 +78,7 @@ struct DailyCard: View {
             .frame(width: 40, height: 40)
             .background(done ? AnyShapeStyle(Theme.shu) : AnyShapeStyle(Theme.frame))
             .overlay(Rectangle().strokeBorder(Theme.hairline, lineWidth: 1))
+            .accessibilityHidden(true)
     }
 }
 

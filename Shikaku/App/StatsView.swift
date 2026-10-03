@@ -10,6 +10,7 @@
 import SwiftUI
 
 struct StatsView: View {
+    @Environment(\.dynamicTypeSize) private var typeSize
     @Environment(ProgressStore.self) private var progress
     @Environment(EntitlementStore.self) private var entitlements
     @Environment(PaywallPresenter.self) private var paywall
@@ -51,7 +52,25 @@ struct StatsView: View {
         }
     }
 
+    @ViewBuilder
     private func bestTimesRow(size: BoardSize) -> some View {
+        if typeSize.isAccessibilitySize {
+            // Five columns of times can't fit at accessibility sizes: one
+            // line per difficulty instead.
+            VStack(alignment: .leading, spacing: Layout.s1) {
+                Text(size.label)
+                    .numberFont(15)
+                    .foregroundStyle(Theme.ink)
+                ForEach(Difficulty.allCases) { tier in
+                    LabeledContent(tier.label, value: bestLabel(size: size, tier: tier))
+                }
+            }
+        } else {
+            compactBestTimesRow(size: size)
+        }
+    }
+
+    private func compactBestTimesRow(size: BoardSize) -> some View {
         HStack {
             Text(size.label)
                 .numberFont(15)

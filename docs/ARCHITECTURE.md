@@ -27,7 +27,7 @@ Shikaku/
 │   ├── Persistence/    # ProgressStore
 │   └── Store/          # the one-time unlock
 ├── ShikakuTests/
-├── ShikakuUITests/
+├── ShikakuUITests/     # performAccessibilityAudit per screen (docs/ACCESSIBILITY.md)
 ├── Tools/EngineCheck/  # CLI harness — OUTSIDE Shikaku/ (top-level code can't be in an app target)
 ├── StoreKit/Shikaku.storekit   # OUTSIDE Shikaku/ or it ships in the bundle
 └── docs/

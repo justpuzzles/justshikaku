@@ -76,9 +76,10 @@ Orientation is thereby encoded, not decorated. Squares get no weave.
 
 Named tokens only in `Motion.swift`; views never write inline animation
 values. `Motion.settle`, `Motion.snapLine`, `Motion.argumentStagger`,
-`Motion.matReject`, `Motion.winSweep`. All honor
-`accessibilityReduceMotion` (settle becomes a plain fade; the win sweep
-becomes a simultaneous tint).
+`Motion.matReject`, `Motion.winSweep`. Under
+`accessibilityReduceMotion`, settle becomes a plain fade, the win sweep a
+simultaneous tint, and the hint banner fades instead of sliding. The hanko
+stamp appears in place without its swing. The remaining opacity fades stay.
 
 **Win**: the room finishes. Mats re-settle in the order laid, a light sweep
 crosses the floor (a shoji screen sliding open), and the kaki **hanko stamp**

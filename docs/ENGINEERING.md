@@ -126,15 +126,30 @@ bug). Font sizes derive from cellSize.
 
 ## Accessibility
 
-`ShikakuUITests` runs `performAccessibilityAudit()` per screen, launched with
-`-uiTestResetState` (DEBUG-guarded in the app; audits inherit prior state
-otherwise and time out on stray alerts). One audit per state;
-`XCTExpectFailure` scope as small as the thing it excuses (it absorbs every
-failure in its test, and swallowed a real bug once). Board digits sized to
-cells are an expected Dynamic Type failure — do not widen filters to hide it.
-Hint text and wins announce via `AccessibilityNotification.Announcement`;
-cells expose a custom action naming which mat they belong to (what the
-outline conveys and speech cannot).
+The audit, its findings and what was accepted are in `docs/ACCESSIBILITY.md`.
+
+- **The board without dragging.** `Game/BoardAccessibility.swift` puts one
+  element per cell under the board (`accessibilityChildren`, a `SwiftUI.Grid`).
+  Double-tap sets a first corner, a second double-tap places the rectangle
+  between. Both go through `ShikakuGame.assistiveCorner`, which shares
+  `place(_:)` with the drag. Custom actions remove a rectangle, place a clue's
+  only fit, or cancel. `AssistiveInputTests` solves whole rooms this way.
+- **Speech.** `BoardSpeech` holds every spoken string for the board. Each
+  assistive action, each hint rung (`HintButton`, `onChange`) and the win
+  post an `AccessibilityNotification.Announcement`. Hint announcements add
+  the row and column of whatever the hint marks, since the hint text refers to
+  drawn marks.
+- **`ShikakuUITests`** runs `performAccessibilityAudit()` once per screen,
+  launched with `-uiTestResetState` (DEBUG-guarded; without it, audits inherit
+  prior state and time out on stray alerts). Filters name exactly what they
+  accept (fixed glyphs by label, List screens, one unattributed issue on the
+  sheet). Never widen them to make a run pass. The target was added with the
+  `xcodeproj` gem plus a patched-in synchronized group, the one sanctioned
+  `project.pbxproj` edit. Files under `ShikakuUITests/` join it automatically.
+  It is `nonisolated` by default; the test class is `@MainActor`.
+- **Text size.** Counters use `.numberFont(_:)` (`Design/ScaledType.swift`,
+  `@ScaledMetric`). Cards use `CardRow`, which stacks at accessibility sizes.
+  Digits sized to cells and seals stay fixed.
 
 ## Driving the simulator
 
