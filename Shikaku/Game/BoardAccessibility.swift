@@ -102,9 +102,6 @@ enum BoardSpeech {
         case .cornerSet(let c):
             return "First corner at \(position(c)). Choose the opposite corner."
         case .placed(let r, let value, let conflict):
-            if game.isSolved {
-                return "\(shape(r)) rectangle for the \(value). The room is finished."
-            }
             return conflict
                 ? "\(shape(r)) rectangle placed for the \(value), but it holds \(r.area) cells."
                 : "\(shape(r)) rectangle placed for the \(value)."
@@ -125,5 +122,23 @@ enum BoardSpeech {
     static func announce(_ outcome: ShikakuGame.AssistiveOutcome, game: ShikakuGame) {
         guard let text = text(outcome, game: game) else { return }
         AccessibilityNotification.Announcement(text).post()
+    }
+
+    /// A hint as spoken: its text, then where on the board it points, since
+    /// the text refers to drawn marks ("the marked cell", "the struck
+    /// rectangle").
+    static func spokenHint(_ hint: Hint) -> String {
+        var parts = [hint.text]
+        if !hint.focusCells.isEmpty {
+            let cells = hint.focusCells.sorted().map(position)
+            parts.append("Marked: " + cells.joined(separator: "; ") + ".")
+        }
+        if hint.level == .resolution, let placement = hint.step?.placement {
+            parts.append("The rectangle runs from \(position(Cell(row: placement.rect.minRow, col: placement.rect.minCol))) to \(position(Cell(row: placement.rect.maxRow, col: placement.rect.maxCol))).")
+        }
+        for r in hint.errorRects {
+            parts.append("The rectangle from \(position(Cell(row: r.minRow, col: r.minCol))) to \(position(Cell(row: r.maxRow, col: r.maxCol))) is wrong.")
+        }
+        return parts.joined(separator: " ")
     }
 }

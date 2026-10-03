@@ -51,9 +51,13 @@ struct HintButton: View {
 
 /// The rung under the board: hint text, and Apply at the top of the ladder.
 struct HintBanner: View {
+    private func announce(_ hint: Hint) {
+        AccessibilityNotification.Announcement(BoardSpeech.spokenHint(hint)).post()
+    }
+
     let game: ShikakuGame
 
-    @Environment(\.accessibilityVoiceOverEnabled) private var voiceOver
+    @Environment(\.accessibilityReduceMotion) private var reduceMotion
 
     private let engine = HintEngine()
 
@@ -74,6 +78,8 @@ struct HintBanner: View {
                         }
                         .font(.subheadline.weight(.semibold))
                         .foregroundStyle(Theme.heri)
+                        .frame(minWidth: 44, minHeight: 44)
+                        .contentShape(Rectangle())
                     }
                     Button {
                         game.activeHint = nil
@@ -86,10 +92,12 @@ struct HintBanner: View {
                     .accessibilityLabel("Dismiss hint")
                 }
             }
-            .transition(.move(edge: .bottom).combined(with: .opacity))
-            .onAppear {
-                AccessibilityNotification.Announcement(hint.text).post()
-            }
+            // Under Reduce Motion the banner fades instead of sliding up.
+            .transition(reduceMotion ? .opacity : .move(edge: .bottom).combined(with: .opacity))
+            // Spoken with positions, since the drawn marks it refers to
+            // ("the marked cell") can't be seen; re-spoken on every rung.
+            .onAppear { announce(hint) }
+            .onChange(of: hint) { _, now in announce(now) }
         }
     }
 }

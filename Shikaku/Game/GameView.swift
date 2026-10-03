@@ -186,7 +186,14 @@ private struct WinOverlay: View {
         .frame(maxWidth: .infinity, maxHeight: .infinity)
         .background(Theme.floor.opacity(0.94).ignoresSafeArea())
         .onAppear {
-            withAnimation(reduceMotion ? Motion.chrome : Motion.winSweep) { stamped = true }
+            // Under Reduce Motion the stamp is simply there: no swing, no
+            // scale, no fade.
+            if reduceMotion { stamped = true } else {
+                withAnimation(Motion.winSweep) { stamped = true }
+            }
+            AccessibilityNotification.Announcement(
+                "Solved. The room is finished in \(TimeFormatting.spoken(game.elapsedSeconds))"
+                + (wasRecord ? ", your best yet on this size." : ".")).post()
         }
         .accessibilityAddTraits(.isModal)
     }
@@ -195,12 +202,14 @@ private struct WinOverlay: View {
         Text("済")
             .font(.system(size: 64, weight: .bold))
             .foregroundStyle(Theme.ink)
+            .accessibilityHidden(true)
             .frame(width: 110, height: 110)
             .background(Theme.shu, in: Rectangle())
             .overlay(Rectangle().strokeBorder(.black.opacity(0.3), lineWidth: 1))
             .rotationEffect(.degrees(stamped ? -6 : -20))
             .scaleEffect(stamped ? 1.0 : 1.6)
             .opacity(stamped ? 1 : 0)
+            .accessibilityElement(children: .ignore)
             .accessibilityLabel("Solved")
     }
 }
@@ -208,15 +217,19 @@ private struct WinOverlay: View {
 // MARK: - Formatting
 
 nonisolated enum TimeFormatting {
+    /// "3 minutes 12 seconds", for VoiceOver (a clock reads as a ratio).
+    static func spoken(_ seconds: Int) -> String {
+        let m = seconds / 60, s = seconds % 60
+        let minutes = m == 1 ? "1 minute" : "\(m) minutes"
+        let secs = s == 1 ? "1 second" : "\(s) seconds"
+        return m == 0 ? secs : "\(minutes) \(secs)"
+    }
+
     static func clock(_ seconds: Int) -> String {
         let m = seconds / 60, s = seconds % 60
         return String(format: "%d:%02d", m, s)
     }
 
-    static func spoken(_ seconds: Int) -> String {
-        let m = seconds / 60, s = seconds % 60
-        return m > 0 ? "\(m) minutes \(s) seconds" : "\(s) seconds"
-    }
 }
 
 extension Difficulty {
