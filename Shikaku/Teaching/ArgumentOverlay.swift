@@ -241,7 +241,7 @@ private struct RegionWash: View {
 }
 
 /// Strokes only the sides of a cell that face out of the region.
-private struct RegionEdge: Shape {
+private nonisolated struct RegionEdge: Shape {
     let cell: Cell
     let others: Set<Cell>
 

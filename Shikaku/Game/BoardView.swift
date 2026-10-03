@@ -71,7 +71,7 @@ private struct LatticeView: View {
     }
 }
 
-private struct LatticeShape: Shape {
+private nonisolated struct LatticeShape: Shape {
     let geo: BoardGeometry
 
     func path(in _: CGRect) -> Path {
@@ -89,7 +89,7 @@ private struct LatticeShape: Shape {
     }
 }
 
-private struct LatticeDots: Shape {
+private nonisolated struct LatticeDots: Shape {
     let geo: BoardGeometry
 
     func path(in _: CGRect) -> Path {
@@ -226,7 +226,7 @@ private struct MatView: View {
 }
 
 /// Weave stripes along the long axis, clipped by the mat that overlays this.
-private struct WeaveShape: Shape {
+private nonisolated struct WeaveShape: Shape {
     let horizontal: Bool
     let isSquare: Bool
 

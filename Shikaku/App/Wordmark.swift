@@ -55,7 +55,7 @@ struct Wordmark: View {
 }
 
 /// Bottom-leading to top-trailing — the direction of laying a mat.
-private struct DragDiagonal: Shape {
+private nonisolated struct DragDiagonal: Shape {
     func path(in rect: CGRect) -> Path {
         var path = Path()
         path.move(to: CGPoint(x: rect.minX, y: rect.maxY))
