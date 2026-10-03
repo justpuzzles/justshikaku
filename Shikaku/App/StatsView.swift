@@ -54,7 +54,7 @@ struct StatsView: View {
     private func bestTimesRow(size: BoardSize) -> some View {
         HStack {
             Text(size.label)
-                .font(Theme.numberFont(size: 15))
+                .numberFont(15)
                 .foregroundStyle(Theme.ink)
                 .frame(width: 64, alignment: .leading)
             Spacer()
@@ -64,7 +64,7 @@ struct StatsView: View {
                         .font(.caption2)
                         .foregroundStyle(Theme.inkSoft)
                     Text(bestLabel(size: size, tier: tier))
-                        .font(Theme.numberFont(size: 12))
+                        .numberFont(12)
                         .foregroundStyle(Theme.ink)
                 }
                 .frame(maxWidth: .infinity)
@@ -125,7 +125,7 @@ struct StatsView: View {
         let stage = mastery.stage(for: technique)
         return LabeledContent {
             Text(stageLabel(stage, unaided: record?.unaided ?? 0))
-                .font(Theme.numberFont(size: 13))
+                .numberFont(13)
         } label: {
             Text(TechniqueContent.name(for: technique))
                 .foregroundStyle(stage == .unseen ? Theme.inkSoft : Theme.ink)

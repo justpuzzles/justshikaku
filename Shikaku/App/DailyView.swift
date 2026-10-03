@@ -26,7 +26,7 @@ struct DailyCard: View {
             Haptics.previewTick()
             path.append(.daily(day))
         } label: {
-            HStack(spacing: Layout.s4) {
+            CardRow {
                 sealGlyph(done: done)
                 VStack(alignment: .leading, spacing: Layout.s1) {
                     Text(done ? "Today's room is finished" : todaysLine)

@@ -170,8 +170,6 @@ private struct MatView: View {
             withAnimation(reduceMotion ? nil : Motion.settle) { settled = true }
             withAnimation(reduceMotion ? nil : Motion.stringSnap) { snapping = false }
         }
-        .accessibilityElement()
-        .accessibilityLabel(matAccessibilityLabel(conflict: conflict))
     }
 
     @ViewBuilder
@@ -220,14 +218,6 @@ private struct MatView: View {
             .padding(.horizontal, 3)
             .padding(.vertical, 2)
             .background(Theme.floor.opacity(0.92), in: Rectangle())
-    }
-
-    private func matAccessibilityLabel(conflict: Bool) -> String {
-        let value = game.puzzle.clues[placed.clueIndex].value
-        let shape = "\(placed.rect.width) by \(placed.rect.height)"
-        return conflict
-            ? "Mat \(shape), holds \(placed.rect.area) cells but its clue needs \(value)"
-            : "Mat \(shape) for the \(value)"
     }
 }
 
@@ -308,8 +298,6 @@ private struct ClueNumeral: View {
         Numeral(value: clue.value, size: geo.clueSize, relaxed: isSatisfied)
             .position(center)
             .animation(Motion.chrome, value: isSatisfied)
-            .accessibilityElement()
-            .accessibilityLabel("Clue \(clue.value)\(isSatisfied ? ", housed" : "")")
     }
 }
 

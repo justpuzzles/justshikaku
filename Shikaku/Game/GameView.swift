@@ -102,7 +102,7 @@ struct GameView: View {
                 .foregroundStyle(Theme.inkSoft)
             Spacer()
             Text(TimeFormatting.clock(game.elapsedSeconds))
-                .font(Theme.numberFont(size: 17))
+                .numberFont(17)
                 .foregroundStyle(Theme.inkSoft)
                 .monospacedDigit()
                 .accessibilityLabel("Elapsed \(TimeFormatting.spoken(game.elapsedSeconds))")
@@ -170,7 +170,7 @@ private struct WinOverlay: View {
                 .font(.subheadline)
                 .foregroundStyle(Theme.inkSoft)
             Text(TimeFormatting.clock(game.elapsedSeconds))
-                .font(Theme.numberFont(size: 34))
+                .numberFont(34)
                 .foregroundStyle(Theme.ink)
             if wasRecord {
                 Text("Your best yet on this size.")

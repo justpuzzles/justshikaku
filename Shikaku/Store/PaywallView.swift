@@ -137,7 +137,15 @@ struct PaywallView: View {
         case .note(let text):
             message(text, color: Theme.inkSoft)
         case .failed(let text):
-            message(text, color: Theme.shu)
+            // Bone text with a vermilion mark: vermilion text on the floor
+            // is 4.0:1, under the 4.5 small text needs.
+            Label {
+                message(text, color: Theme.ink)
+            } icon: {
+                Image(systemName: "exclamationmark.circle.fill")
+                    .foregroundStyle(Theme.shu)
+                    .accessibilityHidden(true)
+            }
         default:
             EmptyView()
         }
@@ -165,6 +173,8 @@ private struct SheetCloseButton: View {
                 .foregroundStyle(Theme.inkSoft)
                 .padding(Layout.s2)
                 .background(Rectangle().fill(Theme.frame))
+                .frame(width: 44, height: 44)
+                .contentShape(Rectangle())
         }
         .accessibilityLabel("Close")
     }

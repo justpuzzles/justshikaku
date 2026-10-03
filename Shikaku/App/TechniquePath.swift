@@ -12,7 +12,8 @@ import SwiftUI
 /// it: an unplayed app shows none at all.
 struct TechniquePath: View {
     let mastery: MasteryTracker
-    var seal: CGFloat = 34
+    /// The drawn seal; each launcher button is a 44pt target around it.
+    var seal: CGFloat = 38
     /// Invoked with the tapped technique; nil renders the row inert (Stats).
     var onTap: ((Technique) -> Void)? = nil
 
@@ -41,18 +42,20 @@ struct TechniquePath: View {
                     .foregroundStyle(Theme.inkSoft)
                 Spacer()
                 Text(counter)
-                    .font(Theme.numberFont(size: 13))
+                    .numberFont(13)
                     .foregroundStyle(Theme.inkSoft)
             }
-            HStack(spacing: Layout.s2) {
+            HStack(spacing: onTap == nil ? Layout.s2 : 2) {
                 ForEach(Technique.allCases) { technique in
-                    let seal = HankoSeal(stage: mastery.stage(for: technique),
-                                         station: technique.rawValue + 1, side: seal)
+                    let stage = mastery.stage(for: technique)
+                    let seal = HankoSeal(stage: stage, station: technique.rawValue + 1, side: seal)
                     if let onTap {
-                        Button { onTap(technique) } label: { seal }
-                            .buttonStyle(.plain)
-                            .accessibilityLabel(
-                                "\(TechniqueContent.name(for: technique)) lesson")
+                        Button { onTap(technique) } label: {
+                            seal.frame(width: 44, height: 44).contentShape(Rectangle())
+                        }
+                        .buttonStyle(.plain)
+                        .accessibilityLabel(
+                            "\(TechniqueContent.name(for: technique)) lesson, \(stageName(stage))")
                     } else {
                         seal
                     }
@@ -61,6 +64,16 @@ struct TechniquePath: View {
             }
         }
         .modifier(PathAccessibility(inert: onTap == nil, learned: learned))
+    }
+
+    /// The stage in words: the seals show it by fill and border only.
+    private func stageName(_ stage: MasteryTracker.Stage) -> String {
+        switch stage {
+        case .unseen: "not started"
+        case .seen: "lesson done"
+        case .practicing: "practising"
+        case .learned: "learned"
+        }
     }
 }
 
@@ -83,7 +96,9 @@ nonisolated struct HankoSeal: View {
     private var stationNumber: some View {
         Text("\(station)")
             .font(Theme.numberFont(size: side * 0.38))
-            .foregroundStyle(stage == .unseen ? Theme.inkSoft.opacity(0.5) : Theme.ink)
+            // Unseen stations read softer by weight, not by fading: a 0.5
+            // fade fell to 3.2:1 on the dark stone.
+            .foregroundStyle(stage == .unseen ? Theme.inkSoft : Theme.ink)
             .fontWeight(stage == .unseen ? .regular : .bold)
     }
 

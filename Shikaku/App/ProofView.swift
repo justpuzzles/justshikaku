@@ -74,7 +74,7 @@ struct ProofCard: View {
                 Haptics.previewTick()
                 path.append(.proof)
             } label: {
-                HStack(spacing: Layout.s4) {
+                CardRow {
                     BoardThumbnail(
                         puzzle: solve.puzzle,
                         board: BoardState(
@@ -162,7 +162,7 @@ struct ReplayView: View {
                 .foregroundStyle(Theme.inkSoft)
             Spacer()
             Text("\(step) of \(graded.count)")
-                .font(Theme.numberFont(size: 15))
+                .numberFont(15)
                 .foregroundStyle(Theme.inkSoft)
                 .monospacedDigit()
         }

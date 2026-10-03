@@ -113,8 +113,11 @@ private struct FocusMarks: View {
     var body: some View {
         ForEach(cells, id: \.self) { cell in
             let f: CGRect = geo.rect(for: cell)
+            // A bone ring inside the vermilion one: vermilion alone is
+            // 1.7:1 against a mat, too faint to find the cell by.
             Rectangle()
                 .strokeBorder(Theme.shu, lineWidth: 2)
+                .overlay(Rectangle().strokeBorder(Theme.ink, lineWidth: 1.5).padding(2))
                 .frame(width: f.width, height: f.height)
                 .position(x: f.midX, y: f.midY)
         }
