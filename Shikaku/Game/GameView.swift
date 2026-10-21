@@ -160,7 +160,9 @@ private struct WinOverlay: View {
     let done: () -> Void
 
     @State private var stamped = false
+    @State private var shareImage: Image?
     @Environment(\.accessibilityReduceMotion) private var reduceMotion
+    @Environment(ProgressStore.self) private var progress
 
     var body: some View {
         VStack(spacing: Layout.s4) {
@@ -176,6 +178,9 @@ private struct WinOverlay: View {
                 Text("Your best yet on this size.")
                     .font(.subheadline)
                     .foregroundStyle(Theme.inkSoft)
+            }
+            if let day = game.dailyDay {
+                shareButton(day)
             }
             Spacer()
             Button("Done") { done() }
@@ -196,12 +201,59 @@ private struct WinOverlay: View {
                 + (wasRecord ? ", your best yet on this size." : ".")).post()
         }
         .accessibilityAddTraits(.isModal)
+        // Keyed on the text: the daily is recorded by GameView's own win task,
+        // which can land after this appears, and the streak and week seal
+        // on the card must be the recorded ones.
+        .task(id: game.dailyDay.map(shareText)) {
+            guard let day = game.dailyDay else { return }
+            let card = DailyShareCard(puzzle: game.puzzle, day: day, seconds: game.elapsedSeconds,
+                                      streak: sharedStreak(day), weekSealed: weekSealed(day))
+            let renderer = ImageRenderer(content: card)
+            renderer.scale = 3
+            if let image = renderer.uiImage {
+                shareImage = Image(uiImage: image)
+            }
+        }
+    }
+
+    /// The streak this solve belongs to, or nil for a missed day of the week
+    /// finished late, which records a time but doesn't extend the chain.
+    private func sharedStreak(_ day: DayKey) -> Int? {
+        progress.daily.lastCompleted == day ? progress.daily.currentStreak : nil
+    }
+
+    private func weekSealed(_ day: DayKey) -> Bool {
+        progress.weeklySeals.contains(ProgressStore.weekKey(of: day))
+    }
+
+    private func shareText(_ day: DayKey) -> String {
+        DailyShare.text(day: day, size: game.puzzle.size, seconds: game.elapsedSeconds,
+                        streak: sharedStreak(day), weekSealed: weekSealed(day))
+    }
+
+    @ViewBuilder
+    private func shareButton(_ day: DayKey) -> some View {
+        let text = shareText(day)
+        Group {
+            if let shareImage {
+                ShareLink(item: shareImage, subject: Text("Just Shikaku daily"), message: Text(text),
+                          preview: SharePreview("Just Shikaku daily", image: shareImage)) {
+                    Label("Share", systemImage: "square.and.arrow.up")
+                }
+            } else {
+                ShareLink(item: text) {
+                    Label("Share", systemImage: "square.and.arrow.up")
+                }
+            }
+        }
+        .buttonStyle(QuietButtonStyle())
+        .accessibilityLabel("Share result")
     }
 
     private var stamp: some View {
         Text("済")
             .font(.system(size: 64, weight: .bold))
-            .foregroundStyle(Theme.ink)
+            .foregroundStyle(Theme.onShu)
             .accessibilityHidden(true)
             .frame(width: 110, height: 110)
             .background(Theme.shu, in: Rectangle())

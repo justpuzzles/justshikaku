@@ -38,6 +38,19 @@ struct SettingsView: View {
             } footer: {
                 Text("The Whole Room is a one-time purchase, shared with your family.")
             }
+            Section("More Just Puzzles") {
+                ForEach(Self.siblings, id: \.appID) { app in
+                    if let url = URL(string: "https://apps.apple.com/app/id\(app.appID)") {
+                        Link(destination: url) {
+                            VStack(alignment: .leading, spacing: 2) {
+                                Text(app.name).foregroundStyle(Theme.ink)
+                                Text(app.blurb).font(.footnote).foregroundStyle(Theme.inkSoft)
+                            }
+                        }
+                        .accessibilityHint("Opens the App Store")
+                    }
+                }
+            }
             Section {
                 LabeledContent("Version", value: Bundle.main.shortVersion)
             }
@@ -46,6 +59,15 @@ struct SettingsView: View {
         .scrollContentBackground(.hidden)
         .background(Theme.floor)
     }
+
+    /// The other Just Puzzles games on sale. Plain App Store links: no
+    /// tracking, no prompt, nothing that interrupts play.
+    private static let siblings: [(name: String, blurb: String, appID: String)] = [
+        ("Just Kakuro", "Sums in a crossword grid", "6796701026"),
+        ("Just Hashi", "Bridges between numbered islands", "6799235188"),
+        ("Just Nurikabe", "Shade the sea around numbered islands", "6816718565"),
+        ("Numeriqo", "Calcudoku, taught step by step", "6749287069"),
+    ]
 
     private var hapticsBinding: Binding<Bool> {
         Binding(

@@ -57,7 +57,7 @@ struct NewRoomSheet: View {
                 .font(.subheadline.weight(.medium))
                 .foregroundStyle(Theme.inkSoft)
             HStack(spacing: Layout.s2) {
-                ForEach(BoardSize.allCases) { candidate in
+                ForEach(BoardSize.offeredOnThisDevice) { candidate in
                     sizeChip(candidate)
                 }
             }

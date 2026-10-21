@@ -154,6 +154,7 @@ import Testing
         #expect(FeatureGate.isBoardSizeAvailable(.seven, unlocked: false))
         #expect(!FeatureGate.isBoardSizeAvailable(.ten, unlocked: false))
         #expect(!FeatureGate.isBoardSizeAvailable(.twelve, unlocked: false))
+        #expect(!FeatureGate.isBoardSizeAvailable(.fifteen, unlocked: false))
 
         for difficulty in Difficulty.allCases {
             #expect(FeatureGate.isDifficultyAvailable(difficulty, unlocked: false),

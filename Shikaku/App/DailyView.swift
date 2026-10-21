@@ -74,7 +74,7 @@ struct DailyCard: View {
     private func sealGlyph(done: Bool) -> some View {
         Text("今")
             .font(.system(size: 20, weight: .bold))
-            .foregroundStyle(done ? Theme.ink : Theme.inkSoft)
+            .foregroundStyle(done ? Theme.onShu : Theme.inkSoft)
             .frame(width: 40, height: 40)
             .background(done ? AnyShapeStyle(Theme.shu) : AnyShapeStyle(Theme.frame))
             .overlay(Rectangle().strokeBorder(Theme.hairline, lineWidth: 1))

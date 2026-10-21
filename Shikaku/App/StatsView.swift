@@ -46,7 +46,7 @@ struct StatsView: View {
 
     private var bestTimesSection: some View {
         Section("Best times") {
-            ForEach(BoardSize.allCases) { size in
+            ForEach(BoardSize.offeredOnThisDevice) { size in
                 bestTimesRow(size: size)
             }
         }
@@ -100,7 +100,7 @@ struct StatsView: View {
     private var solvesSection: some View {
         Section("Solved rooms") {
             LabeledContent("Total", value: "\(progress.stats.totalSolves)")
-            ForEach(BoardSize.allCases) { size in
+            ForEach(BoardSize.offeredOnThisDevice) { size in
                 let count = Difficulty.allCases.reduce(0) {
                     $0 + (progress.stats.solvesBySizeAndDifficulty[
                         ProgressStore.SolveKey(size: size, difficulty: $1)] ?? 0)

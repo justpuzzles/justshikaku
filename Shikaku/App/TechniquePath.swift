@@ -98,7 +98,7 @@ nonisolated struct HankoSeal: View {
             .font(Theme.numberFont(size: side * 0.38))
             // Unseen stations read softer by weight, not by fading: a 0.5
             // fade fell to 3.2:1 on the dark stone.
-            .foregroundStyle(stage == .unseen ? Theme.inkSoft : Theme.ink)
+            .foregroundStyle(stage == .unseen ? Theme.inkSoft : stage == .learned ? Theme.onShu : Theme.ink)
             .fontWeight(stage == .unseen ? .regular : .bold)
     }
 

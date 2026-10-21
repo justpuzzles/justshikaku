@@ -1,0 +1,7 @@
+Just Shikaku now runs on iPad, with room to spare: the board grows to fill the screen, and iPad adds 15 by 15 rooms to the full game.
+
+Share your daily. When you finish it, the win screen makes a picture of the empty room with a dot where each clue sits, plus your time, your streak and a sealed week. No numbers and no mats, so it gives nothing away.
+
+The board can now be played with VoiceOver, without dragging: every cell is its own element, a mat is placed corner to corner, hints are read aloud with their positions, and text, contrast and touch targets follow your accessibility settings.
+
+Fixed: finishing a missed day of the week after a later one no longer resets your streak to 1.

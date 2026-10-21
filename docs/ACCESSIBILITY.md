@@ -56,6 +56,23 @@ at risk, 🟡 friction, 🟢 polish.
 | 14 | 🟢 | A mat that was the wrong rectangle but the right size read "holds 6 cells but its clue needs 6". | **Fixed.** Mats are no longer separate elements. The cell label says "which is not part of the answer" (only with Show mistakes on). |
 | 15 | — | Shikaku no longer built with Xcode 27 (Swift 6.4 isolation check on `Shape` conformances). | **Fixed.** The `Shape` structs are `nonisolated`. |
 
+### iPad (1.1, 2026-10-21)
+
+- **Fixed: text on vermilion seals.** Light-mode `ink` on `shu` is 2.8:1,
+  under the 3:1 large-text floor: the finished daily's 今, the week's 週, the
+  win stamp 済 and the learned technique numbers. They now use `Theme.onShu`
+  (bone): 4.6:1 light, 3.9:1 dark. No audit can see it: UI tests reset state,
+  so no seal is ever in its vermilion state there. Found by computing the
+  pair while chasing the 今 report below.
+- **Accepted: the open 今 seal at @2x.** The iPad audit reports a contrast
+  failure with both `inkSoft` and full `ink` (13.2:1 measured with ink); 段,
+  same style, measures 8.2:1 and passes. 今 has too few stroke pixels for the heuristic.
+- **Accepted: contrast reports for the Learn list row cut off at the bottom
+  edge (iPad).** Unattributed on one run, "Practice drills" at y 1206 of 1210
+  on the next. Every string on screen measured 6.2:1 or better from the
+  simulator screenshot; the test excuses only elements running past the
+  window's bottom edge.
+
 ### Accepted, with reasons
 
 - **The wordmark** ("Just Shikaku") and the **kanji seals** (学 段 今 済 週)

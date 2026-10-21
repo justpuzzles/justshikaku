@@ -29,7 +29,7 @@ struct WeekView: View {
                     // as large text (14pt bold and up).
                     Text("週")
                         .font(.system(size: 15, weight: .bold))
-                        .foregroundStyle(Theme.ink)
+                        .foregroundStyle(Theme.onShu)
                         .frame(width: 26, height: 26)
                         .background(Theme.shu)
                         .accessibilityElement(children: .ignore)

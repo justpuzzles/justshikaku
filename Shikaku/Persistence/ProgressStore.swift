@@ -216,18 +216,17 @@ final class ProgressStore {
 
     /// Records a completed daily. Idempotent per day; increments on
     /// consecutive days, resets to 1 otherwise. `lastCompleted` only moves
-    /// forward — replaying an older day must not rewind the chain.
+    /// forward, so finishing a missed day of the week late can't rewind it.
     func recordDailyCompleted(day: DayKey, seconds: Int) {
         guard !hasCompletedDaily(day) else { return }
         daily.completedTimes[day.isoString] = seconds
-        if daily.lastCompleted == day.previous() {
-            daily.currentStreak += 1
-        } else {
-            daily.currentStreak = 1
+        if let last = daily.lastCompleted, !(last < day) {
+            // An older day finished after a newer one: record the time only.
+            save(daily, key: Key.daily)
+            return
         }
-        if daily.lastCompleted == nil || daily.lastCompleted! < day {
-            daily.lastCompleted = day
-        }
+        daily.currentStreak = daily.lastCompleted == day.previous() ? daily.currentStreak + 1 : 1
+        daily.lastCompleted = day
         daily.bestStreak = max(daily.bestStreak, daily.currentStreak)
         save(daily, key: Key.daily)
     }

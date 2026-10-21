@@ -17,6 +17,8 @@ import Foundation
 
 nonisolated enum BoardSize: Int, CaseIterable, Codable, Sendable, Identifiable {
     case five = 5, seven = 7, ten = 10, twelve = 12
+    /// iPad only (`BoardSize.offered(onPad:)` in the app layer).
+    case fifteen = 15
 
     var id: Int { rawValue }
 }
@@ -34,6 +36,14 @@ nonisolated enum ShikakuGenerator {
     /// Total node budget per generate() call, spent across partitioning,
     /// uniqueness proofs, and solver runs. Deterministic by construction.
     static let nodeBudget = 400_000
+
+    /// 15×15 gets six times the nodes. At 400k, 17 of 20 Severe requests ran
+    /// dry and shipped a Deep board; at 2.4M it is 6 of 20, close to 12×12's
+    /// rate, at about 1.6 s median on an M-series Mac. Per size, so no
+    /// existing board or daily changes.
+    static func nodeBudget(for size: BoardSize) -> Int {
+        size == .fifteen ? 2_400_000 : nodeBudget
+    }
 
     /// A board guaranteed to exercise `technique` — its trace contains at
     /// least one step of it. The daily's salted-retry made general: round 0
@@ -69,7 +79,7 @@ nonisolated enum ShikakuGenerator {
     static func generate(size: BoardSize, tier: Difficulty, seed: UInt64,
                          isCancelled: () -> Bool = { false }) -> GenerationResult {
         var rng = SeededRandomNumberGenerator(seed: seed)
-        var budget = nodeBudget
+        var budget = nodeBudget(for: size)
         var nearest: GenerationResult? = nil
 
         while budget > 0 && !isCancelled() {

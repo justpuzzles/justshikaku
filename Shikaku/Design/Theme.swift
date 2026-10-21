@@ -116,6 +116,12 @@ nonisolated enum Theme {
     /// Never more than two elements at a time.
     static let shu = dynamic(light: ThemeRGBA(red: 0.769, green: 0.204, blue: 0.122, alpha: 1),
                              dark: ThemeRGBA(red: 0.820, green: 0.251, blue: 0.153, alpha: 1))
+    /// Text on a shu seal: bone in both appearances. Light-mode `ink` on shu
+    /// is 2.8:1, under even the 3:1 large-text floor; bone is 4.6:1 light and
+    /// 3.9:1 dark. Found in 1.1 while checking an iPad audit report on 今; the
+    /// audit itself never sees a seal in its shu state (UI tests reset state).
+    static let onShu = dynamic(light: ThemeRGBA(red: 0.949, green: 0.918, blue: 0.855, alpha: 1),
+                               dark: ThemeRGBA(red: 0.949, green: 0.918, blue: 0.855, alpha: 1))
     /// Shu at wash strength, for the region a hint is arguing about.
     static let shuWash = dynamic(light: ThemeRGBA(red: 0.769, green: 0.204, blue: 0.122, alpha: 0.16),
                                  dark: ThemeRGBA(red: 0.820, green: 0.251, blue: 0.153, alpha: 0.22))

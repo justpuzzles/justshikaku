@@ -81,6 +81,24 @@ import Testing
         store.recordDailyCompleted(day: DayKey(year: 2026, month: 8, day: 20), seconds: 100)
         #expect(store.daily.lastCompleted == today)
     }
+
+    /// The week view invites playing a missed day after a later one. That
+    /// late solve records its time and touches nothing else; it used to reset
+    /// the live streak to 1 (the same bug Hashi shipped in 1.0).
+    @Test func finishingAMissedDayOfTheWeekKeepsTheStreak() {
+        let store = freshStore()
+        let wednesday = DayKey(year: 2026, month: 8, day: 26)
+        let thursday = DayKey(year: 2026, month: 8, day: 27)
+        let tuesday = DayKey(year: 2026, month: 8, day: 25)
+        store.recordDailyCompleted(day: wednesday, seconds: 100)
+        store.recordDailyCompleted(day: thursday, seconds: 100)
+        store.recordDailyCompleted(day: tuesday, seconds: 90)
+        #expect(store.daily.lastCompleted == thursday)
+        #expect(store.daily.currentStreak == 2)
+        #expect(store.daily.bestStreak == 2)
+        #expect(store.dailyTime(tuesday) == 90)
+        #expect(store.displayStreak(today: DayKey(year: 2026, month: 8, day: 28)) == 2)
+    }
 }
 
 @Suite @MainActor struct MasteryWiringTests {
