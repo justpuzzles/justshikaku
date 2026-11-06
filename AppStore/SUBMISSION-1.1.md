@@ -7,7 +7,11 @@ State on 2026-11-06: **1.1 (7) on branch `fix/1.1-polish` (release-1.1 plus
 `22f93a47-75c1-4d59-af06-4ddceeeedeee`, release AFTER_APPROVAL. Description,
 What's New and review notes pushed and read back. Screenshots: the 1.0 iPhone
 set (6, carried over) plus a new iPad set (6, `AppStore/screenshots/ipad/`).
-Archive and upload of build 7 in progress; attach and readiness gate follow.**
+Build 7 (`83aad5d7-34e0-411a-b327-dcc2771c5139`, VALID) attached; Apple's
+readiness gate passed; review submission
+`079b3f72-c64b-4b94-a8d5-1773436b6c4e` holds the version and is a DRAFT,
+not submitted. To submit: `PATCH reviewSubmissions/079b3f72-…` with
+`attributes.submitted = true`, or Submit for Review in the web UI.**
 `AppStore/SUBMISSION.md` still holds the record facts and the 1.0 traps.
 
 Build 7 adds, on top of build 6 (the Gregorian day key):
