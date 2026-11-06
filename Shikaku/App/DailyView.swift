@@ -15,8 +15,11 @@ import SwiftUI
 struct DailyCard: View {
     @Binding var path: [Route]
     @Environment(ProgressStore.self) private var progress
+    @Environment(\.scenePhase) private var scenePhase
 
-    private var today: DayKey { DayKey(date: .now) }
+    /// State, not computed: `body` is not re-evaluated at midnight, so a Home
+    /// left open overnight kept offering yesterday's room.
+    @State private var today = DayKey(date: .now)
 
     var body: some View {
         let day = today
@@ -49,6 +52,13 @@ struct DailyCard: View {
         .accessibilityLabel(done
             ? "Today's room is finished, streak \(streak)"
             : "\(todaysLine), streak \(streak)")
+        .onReceive(NotificationCenter.default.publisher(for: .NSCalendarDayChanged)) { _ in
+            today = DayKey(date: .now)
+        }
+        .onChange(of: scenePhase) { _, phase in
+            if phase == .active { today = DayKey(date: .now) }
+        }
+        .onAppear { today = DayKey(date: .now) }
     }
 
     /// "Today needs Sole Owner" — the technique by name, which is the pitch.
@@ -88,6 +98,7 @@ struct DailyHostView: View {
     let day: DayKey
 
     @Environment(MasteryTracker.self) private var mastery
+    @Environment(ProgressStore.self) private var progress
     @State private var game: ShikakuGame?
 
     var body: some View {
@@ -101,6 +112,17 @@ struct DailyHostView: View {
         .task {
             guard game == nil else { return }
             let day = day
+            // Left half-finished earlier today: pick it up, clock and all.
+            if let saved = progress.dailySnapshot(for: day) {
+                let plan = DailySeed.spec(for: day)
+                let resumed = ShikakuGame(puzzle: saved.puzzle, size: plan.size,
+                                          difficulty: plan.difficulty, board: saved.board,
+                                          elapsedSeconds: saved.elapsedSeconds,
+                                          hintsUsed: saved.hintsUsed, dailyDay: day)
+                resumed.mastery = mastery
+                game = resumed
+                return
+            }
             let result = await Task.detached(priority: .userInitiated) {
                 DailySeed.generate(for: day)
             }.value

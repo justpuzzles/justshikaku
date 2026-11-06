@@ -41,6 +41,24 @@ import Testing
         return ProgressStore(userDefaults: defaults)
     }
 
+    /// The daily's own save slot: keyed by day, gone once the day is finished.
+    @Test func dailySlotResumesOnlyItsOwnUnfinishedDay() {
+        let store = freshStore()
+        let today = DayKey(year: 2026, month: 11, day: 6)
+        let lesson = TutorialPuzzles.lesson(for: .onlyFit)
+        let snapshot = GameSnapshot(
+            puzzle: lesson.puzzle, board: lesson.startingBoard,
+            elapsedSeconds: 75, sizeRaw: BoardSize.five.rawValue,
+            difficultyRaw: Difficulty.gentle.rawValue, hintsUsed: 0)
+        store.saveDaily(snapshot, day: today)
+        #expect(store.dailySnapshot(for: today)?.elapsedSeconds == 75)
+        #expect(store.dailySnapshot(for: DayKey(year: 2026, month: 11, day: 7)) == nil)
+        store.recordDailyCompleted(day: today, seconds: 120)
+        #expect(store.dailySnapshot(for: today) == nil, "a finished day replays fresh")
+        store.clearDailySave()
+        #expect(store.dailySave == nil)
+    }
+
     @Test func consecutiveDaysGrowTheStreak() {
         let store = freshStore()
         let d1 = DayKey(year: 2026, month: 8, day: 29)

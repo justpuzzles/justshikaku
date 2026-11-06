@@ -45,6 +45,10 @@ final class ShikakuGame {
     /// clearing this would let a technique be farmed to Learned.
     private(set) var creditedClues: Set<Int> = []
 
+    /// Whether anything has been laid. A pristine board is not worth a save
+    /// slot; see `GameView.persist`.
+    var hasMoves: Bool { board != BoardState() }
+
     init(puzzle: Puzzle, size: BoardSize, difficulty: Difficulty,
          board: BoardState = BoardState(), elapsedSeconds: Int = 0, hintsUsed: Int = 0,
          dailyDay: DayKey? = nil, featuring: Technique? = nil) {

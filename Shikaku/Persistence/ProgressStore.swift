@@ -17,6 +17,14 @@ nonisolated struct GameSnapshot: Codable, Sendable, Equatable {
     var hintsUsed: Int
 }
 
+/// Today's room, left half-finished. Its own slot, keyed by the day: the
+/// daily never shared the free-play slot (Continue is a free-play card), so
+/// until 1.1 leaving the daily lost the board and reset its clock.
+nonisolated struct DailySave: Codable, Sendable, Equatable {
+    var day: DayKey
+    var snapshot: GameSnapshot
+}
+
 /// Per-technique mastery counters. `unaided` only counts deductions made
 /// without help — `creditedCells` survives undo, so place/undo/place is
 /// indistinguishable from a fresh deduction (the anti-farming invariant).
@@ -47,6 +55,7 @@ final class ProgressStore {
     private enum Key {
         static let settings = "shikaku.settings.v1"
         static let saveGame = "shikaku.saveGame.v1"
+        static let dailySave = "shikaku.dailySave.v1"
         static let stats = "shikaku.stats.v1"
         static let bestTimes = "shikaku.bestTimes.v1"
         static let mastery = "shikaku.mastery.v1"
@@ -122,6 +131,7 @@ final class ProgressStore {
     /// reading UserDefaults inside a view body never invalidates it. This is
     /// the family invariant; do not turn it into a computed defaults read.
     private(set) var savedGame: GameSnapshot?
+    private(set) var dailySave: DailySave?
     private(set) var lastPlayed: GameChoice?
     private(set) var mastery = MasteryState()
     private(set) var daily = DailyRecord()
@@ -145,6 +155,7 @@ final class ProgressStore {
         stats = load(Stats.self, key: Key.stats) ?? Stats()
         settings = load(Settings.self, key: Key.settings) ?? Settings()
         savedGame = load(GameSnapshot.self, key: Key.saveGame)
+        dailySave = load(DailySave.self, key: Key.dailySave)
         lastPlayed = load(GameChoice.self, key: Key.lastPlayed)
         mastery = load(MasteryState.self, key: Key.mastery) ?? MasteryState()
         daily = load(DailyRecord.self, key: Key.daily) ?? DailyRecord()
@@ -284,6 +295,25 @@ final class ProgressStore {
     func clearSavedGame() {
         savedGame = nil
         defaults.removeObject(forKey: Key.saveGame)
+    }
+
+    // MARK: - Daily save
+
+    func saveDaily(_ snapshot: GameSnapshot, day: DayKey) {
+        dailySave = DailySave(day: day, snapshot: snapshot)
+        save(dailySave, key: Key.dailySave)
+    }
+
+    /// The half-finished board for `day`, or nil when the slot holds another
+    /// day or the day is already finished (a finished day replays fresh).
+    func dailySnapshot(for day: DayKey) -> GameSnapshot? {
+        guard let dailySave, dailySave.day == day, !hasCompletedDaily(day) else { return nil }
+        return dailySave.snapshot
+    }
+
+    func clearDailySave() {
+        dailySave = nil
+        defaults.removeObject(forKey: Key.dailySave)
     }
 
     // MARK: - Mastery (used by MasteryTracker)

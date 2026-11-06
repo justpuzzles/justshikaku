@@ -36,7 +36,8 @@ nonisolated enum PaidFeature: String, CaseIterable, Sendable, Identifiable {
         case .teachingHints:
             "The full hint ladder with the drawn argument. These hints show you why, instead of only telling you something is wrong."
         case .fullStats:
-            "Best times, solve history, and a seal for every technique, cut only when you earn it."
+            // Best times are free (FeatureGate.isFullStatsAvailable); only history and mastery are sold.
+            "Your solve history, how your hint use falls as the techniques land, and a seal for every technique, cut only when you earn it."
         }
     }
 }

@@ -31,12 +31,28 @@ struct SettingsView: View {
                     Label("Full game unlocked", systemImage: "checkmark.seal")
                         .foregroundStyle(Theme.inkSoft)
                 } else {
-                    Button("Restore purchase") {
+                    Button {
                         Task { await entitlements.restore() }
+                    } label: {
+                        HStack(spacing: 6) {
+                            if entitlements.purchaseState == .restoring {
+                                ProgressView().controlSize(.small)
+                            }
+                            Text(entitlements.purchaseState == .restoring
+                                 ? "Checking with the App Store…" : "Restore purchase")
+                        }
                     }
+                    .disabled(entitlements.purchaseState.isBusy)
                 }
             } footer: {
-                Text("The Whole Room is a one-time purchase, shared with your family.")
+                // The restore used to finish in silence: no spinner, no
+                // "nothing to restore", no error. The store's own note goes here.
+                switch entitlements.purchaseState {
+                case .note(let text), .failed(let text):
+                    Text(text)
+                default:
+                    Text("The Whole Room is a one-time purchase, shared with your family.")
+                }
             }
             Section("More Just Puzzles") {
                 ForEach(Self.siblings, id: \.appID) { app in

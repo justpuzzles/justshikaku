@@ -38,8 +38,8 @@ PURCHASE MODEL
 One non-consumable, de.kaikunze.shikaku.full. Free tier: rules tutorial,
 two lessons, today's room with its streak and weekly seal, The Climb,
 5x5/7x7 at every difficulty, best times, error check. The purchase adds the
-other five lessons, drills and Spot It, the full hint ladder, 10x10/12x12,
-and full statistics. Difficulty is never paywalled.
+other five lessons, drills and Spot It, the full hint ladder, 10x10/12x12
+(and 15x15 on iPad), and full statistics. Difficulty is never paywalled.
 
 TWO DELIBERATE BEHAVIOURS
 
@@ -49,3 +49,12 @@ TWO DELIBERATE BEHAVIOURS
    marked with a hatched overlay and a have/need count, because the free tier's
    errors-only hints need mistakes to be possible before they can point
    at them.
+
+NEW IN 1.1
+
+iPad: the app now runs on iPad; 15x15 rooms are offered there only (the
+board needs the space) and are part of the purchase. Share: the win screen
+of the daily has a Share button; the image is rendered on the device (the
+empty room with a dot per clue, the date, the time, the streak) and handed
+to the system share sheet. Nothing is uploaded. The board is playable with
+VoiceOver without dragging. A saved daily now resumes where it was left.

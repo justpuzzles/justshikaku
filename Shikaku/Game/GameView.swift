@@ -63,6 +63,7 @@ struct GameView: View {
                 // and never owned the save slot.
                 progress.recordDailyCompleted(day: day, seconds: game.elapsedSeconds)
                 progress.awardWeekIfComplete(containing: day)
+                progress.clearDailySave()
             } else {
                 progress.clearSavedGame()
                 wasRecord = progress.recordSolve(
@@ -79,19 +80,25 @@ struct GameView: View {
                 game.tickSecond()
             }
         }
-        .onChange(of: game.board) {
-            guard !game.didWin, game.dailyDay == nil else { return }
-            progress.save(game.snapshot)
-        }
+        // Board change + scene backgrounding + disappear, never phase-change
+        // only (the family invariant).
+        .onChange(of: game.board) { persist() }
         .onChange(of: scenePhase) {
-            if scenePhase != .active && !game.didWin && game.dailyDay == nil {
-                progress.save(game.snapshot)
-            }
+            if scenePhase != .active { persist() }
         }
-        .onDisappear {
-            if !game.didWin && game.dailyDay == nil {
-                progress.save(game.snapshot)
-            }
+        .onDisappear { persist() }
+    }
+
+    /// The daily has its own slot keyed by day; free play has the Continue
+    /// slot, written only once a mat is down (or when this *is* the saved
+    /// game), so laying out a room and backing out cannot erase it.
+    private func persist() {
+        guard !game.didWin else { return }
+        if let day = game.dailyDay {
+            progress.saveDaily(game.snapshot, day: day)
+        } else if game.featuring == nil {
+            guard game.hasMoves || progress.savedGame?.puzzle == game.puzzle else { return }
+            progress.save(game.snapshot)
         }
     }
 
@@ -206,7 +213,7 @@ private struct WinOverlay: View {
         // on the card must be the recorded ones.
         .task(id: game.dailyDay.map(shareText)) {
             guard let day = game.dailyDay else { return }
-            let card = DailyShareCard(puzzle: game.puzzle, day: day, seconds: game.elapsedSeconds,
+            let card = DailyShareCard(puzzle: game.puzzle, day: day, seconds: sharedSeconds(day),
                                       streak: sharedStreak(day), weekSealed: weekSealed(day))
             let renderer = ImageRenderer(content: card)
             renderer.scale = 3
@@ -222,12 +229,19 @@ private struct WinOverlay: View {
         progress.daily.lastCompleted == day ? progress.daily.currentStreak : nil
     }
 
+    /// The time on record for the day. A replay of a finished daily keeps
+    /// its first time (`recordDailyCompleted` is idempotent), so the card and
+    /// the text share that one, not the replay's.
+    private func sharedSeconds(_ day: DayKey) -> Int {
+        progress.dailyTime(day) ?? game.elapsedSeconds
+    }
+
     private func weekSealed(_ day: DayKey) -> Bool {
         progress.weeklySeals.contains(ProgressStore.weekKey(of: day))
     }
 
     private func shareText(_ day: DayKey) -> String {
-        DailyShare.text(day: day, size: game.puzzle.size, seconds: game.elapsedSeconds,
+        DailyShare.text(day: day, size: game.puzzle.size, seconds: sharedSeconds(day),
                         streak: sharedStreak(day), weekSealed: weekSealed(day))
     }
 
