@@ -1,8 +1,43 @@
 # Just Shikaku 1.1: submission runbook
 
-State on 2026-10-21: **built and tested locally on branch `release-1.1`;
-nothing merged, pushed, uploaded or created in App Store Connect.**
+State on 2026-11-06: **1.1 (7) on branch `fix/1.1-polish` (release-1.1 plus
+53837fe and c5e10ea), not merged to `main`. iOS 1.1 version created in ASC:
+`f8110b35-e7ac-4d9b-bf54-ecf17d55082b`, en-US localization
+`0da76ce1-5bbc-410e-a756-2808561459a8`, review detail
+`22f93a47-75c1-4d59-af06-4ddceeeedeee`, release AFTER_APPROVAL. Description,
+What's New and review notes pushed and read back. Screenshots: the 1.0 iPhone
+set (6, carried over) plus a new iPad set (6, `AppStore/screenshots/ipad/`).
+Archive and upload of build 7 in progress; attach and readiness gate follow.**
 `AppStore/SUBMISSION.md` still holds the record facts and the 1.0 traps.
+
+Build 7 adds, on top of build 6 (the Gregorian day key):
+
+- **The daily has its own save slot** (`ProgressStore.DailySave`, keyed by
+  day). Leaving today's room used to lose the board and reset its clock;
+  it now resumes where it was left, and the slot is cleared on the win and
+  ignored once the day is finished.
+- `GameView.persist` is one path for the three save moments; free play
+  writes the Continue slot only once a mat is down (or when it is the saved
+  game), so laying out a room and backing out cannot erase it.
+- `DailyCard` and `WeekView` keep today in state and refresh at midnight and
+  on return to the foreground.
+- Settings' Restore purchase shows a spinner and the store's note or error
+  in the footer instead of finishing in silence.
+- A replayed daily shares its first recorded time, not the replay's.
+- The mastery-path pitch no longer sells best times, which are free.
+- Not changed: the IAP record (APPROVED, no review note); editing it would
+  re-review it, so 15x15 on iPad is named in the description and review notes.
+
+iPad screenshots: `capture_screenshots.py` is iPhone-only and idb hangs on the
+iPad. What worked: a throwaway XCUITest (`ShikakuUITests/ScreenshotCaptureTests`,
+deleted after the run) that navigates with the audit tests' labels and adds
+each `XCUIScreen.main.screenshot()` as an `XCTAttachment` with
+`lifetime = .keepAlways`; run with `-resultBundlePath`, then
+`xcrun xcresulttool export attachments --path X.xcresult --output-path DIR`
+and rename by `manifest.json`. Writing files from the test runner does not
+reach the host (`TEST_RUNNER_` env vars never arrived either). Shut the
+simulator down first, set the status bar, and use the iPad Pro 12.9 6th gen
+on iOS 18.5 (`6BAA0686-…`) for 2048×2732.
 
 ## What 1.1 is
 
