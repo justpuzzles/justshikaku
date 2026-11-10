@@ -12,6 +12,7 @@ import SwiftUI
 struct StatsView: View {
     @Environment(\.dynamicTypeSize) private var typeSize
     @Environment(ProgressStore.self) private var progress
+    @Environment(TodayClock.self) private var clock
     @Environment(EntitlementStore.self) private var entitlements
     @Environment(PaywallPresenter.self) private var paywall
     @Environment(MasteryTracker.self) private var mastery
@@ -38,7 +39,7 @@ struct StatsView: View {
     private var dailySection: some View {
         Section("Today's room") {
             LabeledContent("Streak",
-                           value: "\(progress.displayStreak(today: DayKey(date: .now)))")
+                           value: "\(progress.displayStreak(today: clock.today))")
             LabeledContent("Best streak", value: "\(progress.daily.bestStreak)")
             LabeledContent("Rooms finished", value: "\(progress.daily.completedTimes.count)")
         }

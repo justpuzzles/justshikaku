@@ -34,6 +34,107 @@ import Testing
         }
     }
 
+    // MARK: - PuzzleKit (1.2)
+
+    /// The seed moved into PuzzleKit in 1.2. Pinned to the value 1.1's own
+    /// FNV-1a produced, and to 1.1's code over a century of days: if either
+    /// fails, every player's daily changed.
+    @Test func seedMatchesTheShippedHash() {
+        #expect(DailySeed.seed(for: DayKey(year: 2026, month: 1, day: 1)) == 0x33dbc374d28f0bfb)
+        var day = DayKey(year: 2026, month: 8, day: 1)
+        for _ in 0..<36_525 {
+            #expect(DailySeed.seed(for: day) == Self.shippedSeed(day))
+            #expect(DailySeed.weekday(of: day) == Self.shippedWeekday(day))
+            day = day.next()
+        }
+    }
+
+    private static func shippedSeed(_ day: DayKey) -> UInt64 {
+        var hash: UInt64 = 0xcbf29ce484222325
+        for byte in "shikaku.daily.v1.\(day.isoString)".utf8 {
+            hash ^= UInt64(byte)
+            hash = hash &* 0x100000001b3
+        }
+        return hash
+    }
+
+    private static func shippedWeekday(_ day: DayKey) -> Int {
+        var y = day.year
+        var m = day.month
+        if m < 3 {
+            m += 12
+            y -= 1
+        }
+        let k = y % 100
+        let j = y / 100
+        let h = (day.day + (13 * (m + 1)) / 5 + k + k / 4 + j / 4 + 5 * j) % 7
+        return ((h + 6) % 7) + 1
+    }
+
+    /// 1.1 stored whole seconds; PuzzleKit's record holds `TimeInterval`.
+    /// The 1.1 JSON reads, and what 1.2 writes still decodes as 1.1's
+    /// `[String: Int]`, so a downgrade keeps the history.
+    @Test func a1_1RecordReadsAndStaysReadableBy1_1() throws {
+        let name = "daily-compat-\(UUID().uuidString)"
+        let defaults = UserDefaults(suiteName: name)!
+        defer { defaults.removePersistentDomain(forName: name) }
+        let json = #"{"lastCompleted":{"year":2026,"month":11,"day":9},"currentStreak":3,"bestStreak":5,"completedTimes":{"2026-11-09":95}}"#
+        defaults.set(Data(json.utf8), forKey: "shikaku.daily.v1")
+
+        let store = ProgressStore(userDefaults: defaults)
+        #expect(store.dailyTime(DayKey(year: 2026, month: 11, day: 9)) == 95)
+        #expect(store.displayStreak(today: DayKey(year: 2026, month: 11, day: 10)) == 3)
+        store.recordDailyCompleted(day: DayKey(year: 2026, month: 11, day: 10), seconds: 61)
+
+        struct OldRecord: Decodable {
+            var lastCompleted: DayKey?
+            var currentStreak: Int
+            var bestStreak: Int
+            var completedTimes: [String: Int]
+        }
+        let old = try JSONDecoder().decode(OldRecord.self, from: defaults.data(forKey: "shikaku.daily.v1")!)
+        #expect(old.completedTimes == ["2026-11-09": 95, "2026-11-10": 61])
+        #expect(old.currentStreak == 4)
+    }
+
+    /// Opening another day's room and leaving without a mat must not replace
+    /// a half-finished daily (1.1 wrote the slot unconditionally).
+    @Test func anUntouchedRoomKeepsTheDailySlot() {
+        let store = freshStore()
+        let monday = DayKey(year: 2026, month: 11, day: 9)
+        let tuesday = DayKey(year: 2026, month: 11, day: 10)
+        let lesson = TutorialPuzzles.lesson(for: .onlyFit)
+        let snapshot = GameSnapshot(
+            puzzle: lesson.puzzle, board: lesson.startingBoard,
+            elapsedSeconds: 75, sizeRaw: BoardSize.five.rawValue,
+            difficultyRaw: Difficulty.gentle.rawValue, hintsUsed: 0)
+        store.saveDaily(snapshot, day: monday)
+        store.saveDaily(snapshot, day: tuesday, hasProgress: false)
+        #expect(store.dailySave?.day == monday)
+        // The same day without progress still writes (its clock moves on).
+        var later = snapshot
+        later.elapsedSeconds = 90
+        store.saveDaily(later, day: monday, hasProgress: false)
+        #expect(store.dailySnapshot(for: monday)?.elapsedSeconds == 90)
+        store.saveDaily(snapshot, day: tuesday, hasProgress: true)
+        #expect(store.dailySave?.day == tuesday)
+    }
+
+    /// The week is pure date arithmetic now: Monday to Sunday across a DST
+    /// change, a month end and a year end.
+    @Test func weekDaysAreSevenConsecutiveDays() {
+        for anchor in [DayKey(year: 2026, month: 3, day: 29),    // EU DST Sunday
+                       DayKey(year: 2026, month: 10, day: 25),   // EU DST end
+                       DayKey(year: 2026, month: 12, day: 31),
+                       DayKey(year: 2027, month: 1, day: 3)] {
+            let week = ProgressStore.weekDays(containing: anchor)
+            #expect(week.count == 7)
+            #expect(week.contains(anchor))
+            #expect(week[0].weekday == 2, "\(anchor)")
+            for i in 1..<7 { #expect(week[i] == week[i - 1].next()) }
+        }
+    }
+
     // MARK: - Streak
 
     private func freshStore() -> ProgressStore {
@@ -287,7 +388,9 @@ struct DayKeyCalendarTests {
     /// a Japanese-calendar year (Reiwa 8) would otherwise seed a different board.
     @Test func defaultCalendarIsGregorianLocalTime() {
         #expect(DayKey.localCalendar.identifier == .gregorian)
-        #expect(DayKey.localCalendar.timeZone == TimeZone.current)
+        // PuzzleKit reads the auto-updating zone (it follows a time-zone
+        // change with the app open), which is not `==` to `.current`.
+        #expect(DayKey.localCalendar.timeZone.identifier == TimeZone.current.identifier)
         let date = Date(timeIntervalSince1970: 1_790_000_000)
         let parts = DayKey.localCalendar.dateComponents([.year, .month, .day], from: date)
         #expect(DayKey(date: date) == DayKey(year: parts.year!, month: parts.month!, day: parts.day!))

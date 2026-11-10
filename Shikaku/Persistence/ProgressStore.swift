@@ -41,9 +41,9 @@ nonisolated struct MasteryState: Codable, Sendable, Equatable {
     var perTechnique: [Int: TechniqueMastery] = [:]
 }
 
-/// All persisted progress: settings, best times, stats, mastery, and the
-/// in-progress game. UserDefaults + Codable, versioned keys. No daily/streak
-/// storage — Shikaku v1 ships without a daily puzzle.
+/// All persisted progress: settings, best times, stats, mastery, the daily
+/// streak, and the in-progress games (free play and the daily, apart).
+/// UserDefaults + Codable, versioned keys.
 @Observable @MainActor
 final class ProgressStore {
     private let defaults: UserDefaults
@@ -82,16 +82,6 @@ final class ProgressStore {
         var sizeRaw: Int
         var difficultyRaw: Int
         var seconds: Int
-    }
-
-    /// The daily-room record. `completedTimes` is keyed by `DayKey.isoString`
-    /// so the JSON stays readable and time-zone-free. Ported from Hashi,
-    /// including the monotonic guard on `lastCompleted`.
-    struct DailyRecord: Codable, Equatable {
-        var lastCompleted: DayKey?
-        var currentStreak = 0
-        var bestStreak = 0
-        var completedTimes: [String: Int] = [:]
     }
 
     struct Settings: Codable, Equatable {
@@ -134,6 +124,9 @@ final class ProgressStore {
     private(set) var dailySave: DailySave?
     private(set) var lastPlayed: GameChoice?
     private(set) var mastery = MasteryState()
+    /// PuzzleKit's record since 1.2, under the 1.1 key. 1.1 stored whole
+    /// seconds; PuzzleKit stores `TimeInterval`, and JSON writes a whole
+    /// number either way, so the record reads and writes in both versions.
     private(set) var daily = DailyRecord()
     /// Hints taken per solved room, most recent last, capped — the series
     /// behind Home's trend line. The one number that proves the app works:
@@ -184,16 +177,11 @@ final class ProgressStore {
 
     /// Monday through Sunday of the week containing `day` (Zeller weekday).
     nonisolated static func weekDays(containing day: DayKey) -> [DayKey] {
-        // Walk back to Monday (weekday 2), then forward seven days.
-        var start = day
-        while DailySeed.weekday(of: start) != 2 { start = start.previous() }
-        var days = [start]
-        var cursor = start.date()
-        for _ in 0..<6 {
-            cursor = Calendar.current.date(byAdding: .day, value: 1, to: cursor) ?? cursor
-            days.append(DayKey(date: cursor))
-        }
-        return days
+        // Back to Monday (weekday 2), then six days forward, by pure date
+        // arithmetic. 1.1 stepped with `Calendar.current`, which is the
+        // phone's calendar and could land on a non-Gregorian day key.
+        let monday = day.adding(days: -((DailySeed.weekday(of: day) + 5) % 7))
+        return (0..<7).map { monday.adding(days: $0) }
     }
 
     nonisolated static func weekKey(of day: DayKey) -> String {
@@ -206,40 +194,33 @@ final class ProgressStore {
         save(solve, key: Key.lastSolve)
     }
 
-    // MARK: - Daily streak
+    // MARK: - Daily streak (PuzzleKit's DailyRecord, under the 1.1 key)
 
     func hasCompletedDaily(_ day: DayKey) -> Bool {
-        daily.completedTimes[day.isoString] != nil
+        daily.hasCompleted(day)
     }
 
     func dailyTime(_ day: DayKey) -> Int? {
-        daily.completedTimes[day.isoString]
+        daily.time(for: day).map { Int($0.rounded()) }
     }
 
     /// The streak to *show*: 0 when the chain is already broken (yesterday
     /// missed), even before today is played. Computed, never stored —
     /// storage would go stale at midnight.
     func displayStreak(today: DayKey) -> Int {
-        guard let last = daily.lastCompleted else { return 0 }
-        if last == today || last == today.previous() { return daily.currentStreak }
-        return 0
+        daily.displayStreak(today: today)
     }
 
-    /// Records a completed daily. Idempotent per day; increments on
-    /// consecutive days, resets to 1 otherwise. `lastCompleted` only moves
-    /// forward, so finishing a missed day of the week late can't rewind it.
-    func recordDailyCompleted(day: DayKey, seconds: Int) {
-        guard !hasCompletedDaily(day) else { return }
-        daily.completedTimes[day.isoString] = seconds
-        if let last = daily.lastCompleted, !(last < day) {
-            // An older day finished after a newer one: record the time only.
+    /// Records a completed daily. Idempotent per day (a replay records
+    /// nothing); a missed day of the week finished late keeps its time and
+    /// leaves the streak alone.
+    @discardableResult
+    func recordDailyCompleted(day: DayKey, seconds: Int) -> DailyOutcome {
+        let outcome = daily.record(day: day, time: TimeInterval(seconds))
+        if !outcome.isReplay {
             save(daily, key: Key.daily)
-            return
         }
-        daily.currentStreak = daily.lastCompleted == day.previous() ? daily.currentStreak + 1 : 1
-        daily.lastCompleted = day
-        daily.bestStreak = max(daily.bestStreak, daily.currentStreak)
-        save(daily, key: Key.daily)
+        return outcome
     }
 
     /// Records the *requested* size/difficulty for a new game.
@@ -299,7 +280,13 @@ final class ProgressStore {
 
     // MARK: - Daily save
 
-    func saveDaily(_ snapshot: GameSnapshot, day: DayKey) {
+    /// `hasProgress: false` (a room opened and left without a mat) keeps
+    /// whatever the slot holds. 1.1 wrote unconditionally, so a look at
+    /// another day's room from the week view replaced a half-finished daily.
+    /// PuzzleKit's `SaveSlots` rule; the slot itself stays Shikaku's, keyed
+    /// by day.
+    func saveDaily(_ snapshot: GameSnapshot, day: DayKey, hasProgress: Bool = true) {
+        guard hasProgress || dailySave?.day == day else { return }
         dailySave = DailySave(day: day, snapshot: snapshot)
         save(dailySave, key: Key.dailySave)
     }

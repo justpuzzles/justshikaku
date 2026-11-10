@@ -4,22 +4,28 @@ import SwiftUI
 /// anything away. The card draws the bare grid with a dot where each clue sits,
 /// and no numbers and no mats, so a friend who hasn't played today's room
 /// learns nothing from it. Ported from Just Hashi 1.1.
-nonisolated enum DailyShare {
-    static let siteURL = "kaikunze.de/justshikaku/"
+///
+/// The text is PuzzleKit's `DailyShare` since 1.2, the same shape as every
+/// other Just Puzzles game; the image card is Shikaku's own.
+extension DailyShareCard {
+    /// Printed on the card. The share text carries the full link.
+    nonisolated static let siteURL = "kaikunze.de/justshikaku/"
+    nonisolated static let link = URL(string: "https://kaikunze.de/justshikaku/")
 
     /// `streak` is nil when the solve didn't extend the chain (a missed day of
     /// the week finished late): the text then leaves the streak out rather
     /// than claim the current one.
-    static func text(day: DayKey, size: Int, seconds: Int, streak: Int?, weekSealed: Bool) -> String {
-        var second = "\(size)×\(size) in \(TimeFormatting.clock(seconds))"
-        if let streak, streak > 1 { second += " · \(streak) day streak" }
-        if weekSealed { second += " · week sealed" }
-        return "Just Shikaku daily, \(dateLabel(day))\n\(second)\n\(siteURL)"
+    nonisolated static func text(day: DayKey, size: Int, seconds: Int, streak: Int?,
+                                 weekSealed: Bool, locale: Locale = .current) -> String {
+        let detail = weekSealed ? "\(size)×\(size) · week sealed" : "\(size)×\(size)"
+        return DailyShare(game: "Just Shikaku", day: day, timeText: TimeFormatting.clock(seconds),
+                          streak: streak ?? 0, detail: detail, url: link)
+            .text(locale: locale)
     }
 
-    /// "20 Oct 2026", fixed to English and the Gregorian calendar so the text
-    /// reads the same wherever it is pasted.
-    static func dateLabel(_ day: DayKey) -> String {
+    /// "20 Oct 2026", fixed to English and the Gregorian calendar so the card
+    /// reads the same wherever it is posted.
+    nonisolated static func dateLabel(_ day: DayKey) -> String {
         let months = ["Jan", "Feb", "Mar", "Apr", "May", "Jun",
                       "Jul", "Aug", "Sep", "Oct", "Nov", "Dec"]
         let month = (1...12).contains(day.month) ? months[day.month - 1] : "?"
@@ -43,7 +49,7 @@ struct DailyShareCard: View {
                     .font(.system(size: 26, weight: .bold))
                     .foregroundStyle(Theme.ink)
                 Spacer()
-                Text(DailyShare.dateLabel(day))
+                Text(Self.dateLabel(day))
                     .font(.system(size: 17, weight: .medium))
                     .foregroundStyle(Theme.inkSoft)
             }
@@ -73,7 +79,7 @@ struct DailyShareCard: View {
                     .background(Theme.shu, in: Rectangle())
                     .rotationEffect(.degrees(-6))
             }
-            Text(DailyShare.siteURL)
+            Text(Self.siteURL)
                 .font(.system(size: 13, weight: .medium))
                 .foregroundStyle(Theme.inkSoft)
         }

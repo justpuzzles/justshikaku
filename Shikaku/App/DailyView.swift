@@ -15,11 +15,11 @@ import SwiftUI
 struct DailyCard: View {
     @Binding var path: [Route]
     @Environment(ProgressStore.self) private var progress
-    @Environment(\.scenePhase) private var scenePhase
+    @Environment(TodayClock.self) private var clock
 
-    /// State, not computed: `body` is not re-evaluated at midnight, so a Home
-    /// left open overnight kept offering yesterday's room.
-    @State private var today = DayKey(date: .now)
+    /// From the app's `TodayClock`, which follows midnight, time-zone changes
+    /// and the app coming back to the front (1.1 kept its own copy here).
+    private var today: DayKey { clock.today }
 
     var body: some View {
         let day = today
@@ -52,13 +52,6 @@ struct DailyCard: View {
         .accessibilityLabel(done
             ? "Today's room is finished, streak \(streak)"
             : "\(todaysLine), streak \(streak)")
-        .onReceive(NotificationCenter.default.publisher(for: .NSCalendarDayChanged)) { _ in
-            today = DayKey(date: .now)
-        }
-        .onChange(of: scenePhase) { _, phase in
-            if phase == .active { today = DayKey(date: .now) }
-        }
-        .onAppear { today = DayKey(date: .now) }
     }
 
     /// "Today needs Sole Owner" — the technique by name, which is the pitch.

@@ -1,52 +1,10 @@
 import Foundation
 
-/// A local-calendar day, the key for the daily room and its streak.
-nonisolated struct DayKey: Hashable, Codable, Sendable, Comparable {
-    let year: Int
-    let month: Int
-    let day: Int
-
-    init(year: Int, month: Int, day: Int) {
-        self.year = year
-        self.month = month
-        self.day = day
-    }
-
-    /// Gregorian in the device's time zone. The daily still turns over at the
-    /// player's midnight, but year, month and day are always Gregorian, so a
-    /// phone set to the Japanese or Buddhist calendar gets the same board and
-    /// weekday as everyone else.
-    static var localCalendar: Calendar {
-        var calendar = Calendar(identifier: .gregorian)
-        calendar.timeZone = .current
-        return calendar
-    }
-
-    init(date: Date, calendar: Calendar = DayKey.localCalendar) {
-        let parts = calendar.dateComponents([.year, .month, .day], from: date)
-        year = parts.year ?? 2000
-        month = parts.month ?? 1
-        day = parts.day ?? 1
-    }
-
-    var isoString: String {
-        String(format: "%04d-%02d-%02d", year, month, day)
-    }
-
-    func date(calendar: Calendar = DayKey.localCalendar) -> Date {
-        calendar.date(from: DateComponents(year: year, month: month, day: day)) ?? .distantPast
-    }
-
-    func previous(calendar: Calendar = DayKey.localCalendar) -> DayKey {
-        let d = date(calendar: calendar)
-        let prev = calendar.date(byAdding: .day, value: -1, to: d) ?? d
-        return DayKey(date: prev, calendar: calendar)
-    }
-
-    static func < (lhs: DayKey, rhs: DayKey) -> Bool {
-        (lhs.year, lhs.month, lhs.day) < (rhs.year, rhs.month, rhs.day)
-    }
-}
+#if canImport(PuzzleKit)
+// Absent under a bare `swiftc` bench, which compiles PuzzleKit's sources into
+// the same module instead (docs/ENGINEERING.md).
+import PuzzleKit
+#endif
 
 /// The curriculum-tied daily: every player gets the same board, and each
 /// day's board is generated to exercise a **named technique** — the thing no
@@ -57,14 +15,10 @@ nonisolated struct DayKey: Hashable, Codable, Sendable, Comparable {
 /// changes every future (and past) daily for everyone.
 nonisolated enum DailySeed {
 
-    /// FNV-1a over "shikaku.daily.v1.YYYY-MM-DD".
+    /// FNV-1a over "shikaku.daily.v1.YYYY-MM-DD", through PuzzleKit since
+    /// 1.2 (`DayKey` lives there too); the prefix and schedule are Shikaku's.
     static func seed(for day: DayKey) -> UInt64 {
-        var hash: UInt64 = 0xcbf29ce484222325
-        for byte in "shikaku.daily.v1.\(day.isoString)".utf8 {
-            hash ^= UInt64(byte)
-            hash = hash &* 0x100000001b3
-        }
-        return hash
+        DaySeed.seed(prefix: "shikaku.daily.v1.", day: day)
     }
 
     /// The week climbs the curriculum: easy arguments early, the one-ply
@@ -85,20 +39,11 @@ nonisolated enum DailySeed {
         }
     }
 
-    /// 1 = Sunday … 7 = Saturday (Zeller's congruence — independent of
-    /// Calendar and timezone, which already broke a sibling's streaks once).
+    /// 1 = Sunday … 7 = Saturday, from the date itself (never a `Calendar`).
+    /// PuzzleKit's Julian-day weekday; its tests pin it equal to the Zeller
+    /// formula 1.1 shipped with, on every day from 1900 to 2300.
     static func weekday(of day: DayKey) -> Int {
-        var y = day.year
-        var m = day.month
-        if m < 3 {
-            m += 12
-            y -= 1
-        }
-        let k = y % 100
-        let j = y / 100
-        let h = (day.day + (13 * (m + 1)) / 5 + k + k / 4 + j / 4 + 5 * j) % 7
-        // Zeller: 0 = Saturday … 6 = Friday → 1 = Sunday … 7 = Saturday.
-        return ((h + 6) % 7) + 1
+        day.weekday
     }
 
     /// The day's board, and whether the scheduled technique really appears in

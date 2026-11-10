@@ -90,12 +90,12 @@ struct GameView: View {
     }
 
     /// The daily has its own slot keyed by day; free play has the Continue
-    /// slot, written only once a mat is down (or when this *is* the saved
-    /// game), so laying out a room and backing out cannot erase it.
+    /// slot. Both are written only once a mat is down (or when this *is* the
+    /// saved game), so laying out a room and backing out cannot erase either.
     private func persist() {
         guard !game.didWin else { return }
         if let day = game.dailyDay {
-            progress.saveDaily(game.snapshot, day: day)
+            progress.saveDaily(game.snapshot, day: day, hasProgress: game.hasMoves)
         } else if game.featuring == nil {
             guard game.hasMoves || progress.savedGame?.puzzle == game.puzzle else { return }
             progress.save(game.snapshot)
@@ -241,7 +241,7 @@ private struct WinOverlay: View {
     }
 
     private func shareText(_ day: DayKey) -> String {
-        DailyShare.text(day: day, size: game.puzzle.size, seconds: sharedSeconds(day),
+        DailyShareCard.text(day: day, size: game.puzzle.size, seconds: sharedSeconds(day),
                         streak: sharedStreak(day), weekSealed: weekSealed(day))
     }
 

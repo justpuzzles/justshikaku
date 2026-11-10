@@ -12,10 +12,10 @@ import SwiftUI
 struct WeekView: View {
     @Binding var path: [Route]
     @Environment(ProgressStore.self) private var progress
-    @Environment(\.scenePhase) private var scenePhase
+    @Environment(TodayClock.self) private var clock
 
-    /// State, not computed, so the row moves on at midnight (see `DailyCard`).
-    @State private var today = DayKey(date: .now)
+    /// From `TodayClock`, so the row moves on at midnight.
+    private var today: DayKey { clock.today }
 
     var body: some View {
         let days = ProgressStore.weekDays(containing: today)
@@ -45,12 +45,6 @@ struct WeekView: View {
                 }
                 Spacer(minLength: 0)
             }
-        }
-        .onReceive(NotificationCenter.default.publisher(for: .NSCalendarDayChanged)) { _ in
-            today = DayKey(date: .now)
-        }
-        .onChange(of: scenePhase) { _, phase in
-            if phase == .active { today = DayKey(date: .now) }
         }
     }
 
