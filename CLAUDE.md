@@ -5,8 +5,8 @@ iPhone puzzle game (iOS 18.5+) teaching Shikaku (rectangle partition), modeled o
 ## Critical invariants
 
 - **Never edit project.pbxproj to add files.** `objectVersion 77` + `PBXFileSystemSynchronizedRootGroup`: every `.swift` file under `Shikaku/` and `ShikakuTests/` joins the build automatically.
-- **`Shikaku/Engine/` is pure**: no SwiftUI/UIKit imports, every type `nonisolated` + `Sendable`. It must compile as a CLI: `swiftc -O -o /tmp/enginecheck Shikaku/Engine/*.swift ../PuzzleKit/Sources/PuzzleKit/*.swift Tools/EngineCheck/*.swift` (harness output to stderr).
-- **PuzzleKit (since 1.2)** is a local package at `../PuzzleKit` (github.com/justpuzzles/PuzzleKit); clone it beside this repo. It owns `DayKey`/`DaySeed`, the streak record (`DailyRecord`, still under `shikaku.daily.v1`; 1.1's whole seconds read and write unchanged), `TodayClock` and the share text. The save slots stay Shikaku's own (`saveGame.v1` + the day-keyed `dailySave.v1`), with PuzzleKit's rule: an untouched board never overwrites a save. `App/PuzzleKitExports.swift` re-exports the kit; engine files import it behind `#if canImport(PuzzleKit)`. Never change the seed prefix, the hash or `isoString`.
+- **`Shikaku/Engine/` is pure**: no SwiftUI/UIKit imports, every type `nonisolated` + `Sendable`. It must compile as a CLI: `swiftc -O -o /tmp/enginecheck Shikaku/Engine/*.swift "$(Tools/puzzlekit-sources.sh)"/*.swift Tools/EngineCheck/*.swift` (harness output to stderr).
+- **PuzzleKit (since 1.2)** is a Swift package from github.com/justpuzzles/PuzzleKit, pinned to a revision in the project (`Package.resolved`); a plain clone builds. To work on the kit, drag a local `../PuzzleKit` into the project (Xcode overrides the remote one) or set `PUZZLEKIT=../PuzzleKit` for the engine build; bump the pinned revision when the kit changes. It owns `DayKey`/`DaySeed`, the streak record (`DailyRecord`, still under `shikaku.daily.v1`; 1.1's whole seconds read and write unchanged), `TodayClock` and the share text. The save slots stay Shikaku's own (`saveGame.v1` + the day-keyed `dailySave.v1`), with PuzzleKit's rule: an untouched board never overwrites a save. `App/PuzzleKitExports.swift` re-exports the kit; engine files import it behind `#if canImport(PuzzleKit)`. Never change the seed prefix, the hash or `isoString`.
 - **`Theme` and `Motion` are `nonisolated` — load-bearing.** `SWIFT_DEFAULT_ACTOR_ISOLATION = MainActor` project-wide; a `UIColor(dynamicProvider:)` closure that inherits MainActor traps off-main (`EXC_BREAKPOINT`, intermittent, shipped in kakuro once). Guarded by `ThemeIsolationTests`; do not "fix".
 - **No ViewModels.** `@Observable` (never ObservableObject), `@Environment` for services, view state as enums, `.task(id:)` for async effects.
 - Every shipped puzzle is unique-solution AND fully solvable by `LogicalSolver` — enforced inside `ShikakuGenerator.generate`, not by convention. Deterministic node budget, seeded RNG, baked fallbacks.
@@ -23,7 +23,7 @@ iPhone puzzle game (iOS 18.5+) teaching Shikaku (rectangle partition), modeled o
 
 ```bash
 # Fast engine iteration — no simulator, seconds:
-swiftc -O -o /tmp/enginecheck Shikaku/Engine/*.swift ../PuzzleKit/Sources/PuzzleKit/*.swift Tools/EngineCheck/*.swift && /tmp/enginecheck
+swiftc -O -o /tmp/enginecheck Shikaku/Engine/*.swift "$(Tools/puzzlekit-sources.sh)"/*.swift Tools/EngineCheck/*.swift && /tmp/enginecheck
 SHIKAKU_CALIBRATE=1 /tmp/enginecheck     # difficulty threshold table for DifficultyRater
 
 # App + tests (ALWAYS pin OS= — this machine has many runtimes):

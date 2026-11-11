@@ -11,7 +11,7 @@ Two independent verification paths. **Both must pass.**
 
 ```bash
 # 1. Engine harness — pure Swift, no simulator, seconds.
-swiftc -O -o /tmp/enginecheck Shikaku/Engine/*.swift ../PuzzleKit/Sources/PuzzleKit/*.swift Tools/EngineCheck/*.swift
+swiftc -O -o /tmp/enginecheck Shikaku/Engine/*.swift "$(Tools/puzzlekit-sources.sh)"/*.swift Tools/EngineCheck/*.swift
 /tmp/enginecheck; echo "exit=$?"
 
 # 2. App + play layer.

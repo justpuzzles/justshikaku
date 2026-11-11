@@ -234,7 +234,7 @@ Two verification paths, both required (the harness compiles without MainActor
 default isolation and cannot see the app target's concurrency errors):
 
 ```bash
-swiftc -O -o /tmp/enginecheck Shikaku/Engine/*.swift ../PuzzleKit/Sources/PuzzleKit/*.swift Tools/EngineCheck/*.swift && /tmp/enginecheck
+swiftc -O -o /tmp/enginecheck Shikaku/Engine/*.swift "$(Tools/puzzlekit-sources.sh)"/*.swift Tools/EngineCheck/*.swift && /tmp/enginecheck
 xcodebuild test -project Shikaku.xcodeproj -scheme Shikaku \
   -destination 'platform=iOS Simulator,name=iPhone 16 Pro,OS=18.5'
 ```
