@@ -16,7 +16,7 @@ extension DailyShareCard {
     /// the week finished late): the text then leaves the streak out rather
     /// than claim the current one.
     nonisolated static func text(day: DayKey, size: Int, seconds: Int, streak: Int?,
-                                 weekSealed: Bool, locale: Locale = .current) -> String {
+                                 weekSealed: Bool, locale: Locale = DailyShare.appLocale) -> String {
         let detail = weekSealed ? "\(size)×\(size) · week sealed" : "\(size)×\(size)"
         return DailyShare(game: "Just Shikaku", day: day, timeText: TimeFormatting.clock(seconds),
                           streak: streak ?? 0, detail: detail, url: link)
