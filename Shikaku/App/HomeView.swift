@@ -72,7 +72,7 @@ struct HomeView: View {
             Haptics.previewTick()
             path.append(.resume)
         } label: {
-            HStack(spacing: Layout.s4) {
+            CardRow {
                 if let saved = progress.savedGame {
                     BoardThumbnail(puzzle: saved.puzzle, board: saved.board)
                         .frame(width: 56, height: 56)
@@ -82,7 +82,7 @@ struct HomeView: View {
                         .font(.headline)
                         .foregroundStyle(Theme.ink)
                     Text(savedLabel)
-                        .font(Theme.numberFont(size: 13))
+                        .numberFont(13)
                         .foregroundStyle(Theme.inkSoft)
                 }
                 Spacer()
@@ -115,12 +115,13 @@ struct HomeView: View {
                 Haptics.previewTick()
                 path.append(.learn)
             } label: {
-                HStack(spacing: Layout.s4) {
+                CardRow {
                     Text("学")
                         .font(.system(size: 20, weight: .bold))
                         .foregroundStyle(Theme.floor)
                         .frame(width: 40, height: 40)
                         .background(Theme.heri)
+                        .accessibilityHidden(true)
                     VStack(alignment: .leading, spacing: Layout.s1) {
                         Text("New here? Start with the rules")
                             .font(.headline)
@@ -146,13 +147,14 @@ struct HomeView: View {
             Haptics.previewTick()
             path.append(.climb)
         } label: {
-            HStack(spacing: Layout.s4) {
+            CardRow {
                 Text("段")
                     .font(.system(size: 20, weight: .bold))
                     .foregroundStyle(Theme.inkSoft)
                     .frame(width: 40, height: 40)
                     .background(Theme.frame)
                     .overlay(Rectangle().strokeBorder(Theme.hairline, lineWidth: 1))
+                    .accessibilityHidden(true)
                 VStack(alignment: .leading, spacing: Layout.s1) {
                     Text("The Climb")
                         .font(.headline)
@@ -231,6 +233,8 @@ struct HomeView: View {
                 Button("Drill it") { path.append(.drill(technique)) }
                     .font(.footnote.weight(.semibold))
                     .foregroundStyle(Theme.heri)
+                    .frame(minHeight: 44)
+                    .contentShape(Rectangle())
                 Spacer(minLength: 0)
             }
         }
@@ -371,14 +375,14 @@ struct HintTrendLine: View {
                     .font(.footnote)
                     .foregroundStyle(Theme.inkSoft)
                 Text("\(formatted(early)) → \(formatted(late))")
-                    .font(Theme.numberFont(size: 13))
+                    .numberFont(13)
                     .foregroundStyle(late <= early ? Theme.heri : Theme.inkSoft)
                 spark
                 Spacer(minLength: 0)
             }
             .accessibilityElement()
             .accessibilityLabel(
-                "Hints per room, from \(formatted(early)) down to \(formatted(late))")
+                "Hints per room, from \(formatted(early)) \(late < early ? "down" : late > early ? "up" : "steady") to \(formatted(late))")
         }
     }
 

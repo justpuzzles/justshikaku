@@ -68,7 +68,7 @@ struct DrillView: View {
                 .foregroundStyle(Theme.inkSoft)
             Spacer()
             Text(TimeFormatting.clock(seconds))
-                .font(Theme.numberFont(size: 17))
+                .numberFont(17)
                 .foregroundStyle(Theme.inkSoft)
                 .monospacedDigit()
         }
@@ -85,6 +85,8 @@ struct DrillView: View {
                 Button("Done") { dismiss() }
                     .font(.subheadline.weight(.semibold))
                     .foregroundStyle(Theme.heri)
+                    .frame(minWidth: 44, minHeight: 44)
+                    .contentShape(Rectangle())
             }
         }
     }

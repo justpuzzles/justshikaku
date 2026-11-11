@@ -38,6 +38,16 @@
                ReferencedContainer = "container:Shikaku.xcodeproj">
             </BuildableReference>
          </TestableReference>
+         <TestableReference
+            skipped = "NO">
+            <BuildableReference
+               BuildableIdentifier = "primary"
+               BlueprintIdentifier = "5F73D221FBB6FF17A7E05FBB"
+               BuildableName = "ShikakuUITests.xctest"
+               BlueprintName = "ShikakuUITests"
+               ReferencedContainer = "container:Shikaku.xcodeproj">
+            </BuildableReference>
+         </TestableReference>
       </Testables>
    </TestAction>
    <LaunchAction

@@ -12,6 +12,9 @@ struct ShikakuApp: App {
     @State private var paywall: PaywallPresenter
     @State private var cache: PuzzleCache
     @State private var mastery: MasteryTracker
+    /// Today's day key for every screen, kept current across midnight.
+    @State private var clock = TodayClock()
+    @Environment(\.scenePhase) private var scenePhase
 
     init() {
         #if DEBUG
@@ -58,6 +61,7 @@ struct ShikakuApp: App {
                 .environment(paywall)
                 .environment(cache)
                 .environment(mastery)
+                .environment(clock)
                 .tint(Theme.ink)
                 // One committed world. The app is the lacquered room seen from
                 // above, the same view as the icon; a light re-tint of it is a
@@ -65,6 +69,11 @@ struct ShikakuApp: App {
                 // appearance can return without touching this file's
                 // isolation-critical structure.
                 .preferredColorScheme(.dark)
+        }
+        // No day-change notification reaches a suspended app, so a phone
+        // unlocked the next morning would still be on yesterday.
+        .onChange(of: scenePhase) { _, phase in
+            if phase == .active { clock.refresh() }
         }
     }
 }

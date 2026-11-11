@@ -6,8 +6,20 @@
 	objectVersion = 77;
 	objects = {
 
+/* Begin PBXBuildFile section */
+		A1C0FFEE0000000000000003 /* PuzzleKit in Frameworks */ = {isa = PBXBuildFile; productRef = A1C0FFEE0000000000000002 /* PuzzleKit */; };
+		00CA7F86174C8B9271C69B5A /* Foundation.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 7CC0342ADEBBCF195D069CF6 /* Foundation.framework */; };
+/* End PBXBuildFile section */
+
 /* Begin PBXContainerItemProxy section */
 		2A05798B30268A2100FA10FF /* PBXContainerItemProxy */ = {
+			isa = PBXContainerItemProxy;
+			containerPortal = 7AC24A522E35D8C000111972 /* Project object */;
+			proxyType = 1;
+			remoteGlobalIDString = 7AC24A592E35D8C000111972;
+			remoteInfo = Shikaku;
+		};
+		36627C186F44056C431C4200 /* PBXContainerItemProxy */ = {
 			isa = PBXContainerItemProxy;
 			containerPortal = 7AC24A522E35D8C000111972 /* Project object */;
 			proxyType = 1;
@@ -17,28 +29,50 @@
 /* End PBXContainerItemProxy section */
 
 /* Begin PBXFileReference section */
+		3952A918A5D87ABAB8837F37 /* ShikakuUITests.xctest */ = {isa = PBXFileReference; explicitFileType = wrapper.cfbundle; includeInIndex = 0; path = ShikakuUITests.xctest; sourceTree = BUILT_PRODUCTS_DIR; };
 		7AC24A5A2E35D8C000111972 /* Shikaku.app */ = {isa = PBXFileReference; explicitFileType = wrapper.application; includeInIndex = 0; path = Shikaku.app; sourceTree = BUILT_PRODUCTS_DIR; };
 		7AC24A802E35D8C300111972 /* ShikakuTests.xctest */ = {isa = PBXFileReference; explicitFileType = wrapper.cfbundle; includeInIndex = 0; path = ShikakuTests.xctest; sourceTree = BUILT_PRODUCTS_DIR; };
+		7CC0342ADEBBCF195D069CF6 /* Foundation.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = Foundation.framework; path = Platforms/iPhoneOS.platform/Developer/SDKs/iPhoneOS18.0.sdk/System/Library/Frameworks/Foundation.framework; sourceTree = DEVELOPER_DIR; };
 /* End PBXFileReference section */
 
 /* Begin PBXFileSystemSynchronizedRootGroup section */
+		0245EF12912DB70CCAF58FA4 /* ShikakuUITests */ = {
+			isa = PBXFileSystemSynchronizedRootGroup;
+			exceptions = (
+			);
+			path = ShikakuUITests;
+			sourceTree = "<group>";
+		};
 		7AC24A5C2E35D8C000111972 /* Shikaku */ = {
 			isa = PBXFileSystemSynchronizedRootGroup;
+			exceptions = (
+			);
 			path = Shikaku;
 			sourceTree = "<group>";
 		};
 		7AC24A892E35D8C300111972 /* ShikakuTests */ = {
 			isa = PBXFileSystemSynchronizedRootGroup;
+			exceptions = (
+			);
 			path = ShikakuTests;
 			sourceTree = "<group>";
 		};
 /* End PBXFileSystemSynchronizedRootGroup section */
 
 /* Begin PBXFrameworksBuildPhase section */
+		38360B31EC8C4E68B420DCD9 /* Frameworks */ = {
+			isa = PBXFrameworksBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+				00CA7F86174C8B9271C69B5A /* Foundation.framework in Frameworks */,
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+		};
 		7AC24A572E35D8C000111972 /* Frameworks */ = {
 			isa = PBXFrameworksBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
+				A1C0FFEE0000000000000003 /* PuzzleKit in Frameworks */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
@@ -58,6 +92,8 @@
 				7AC24A5C2E35D8C000111972 /* Shikaku */,
 				7AC24A892E35D8C300111972 /* ShikakuTests */,
 				7AC24A5B2E35D8C000111972 /* Products */,
+				F0E3120AB4F04A57AFC85EE8 /* Frameworks */,
+				0245EF12912DB70CCAF58FA4 /* ShikakuUITests */,
 			);
 			sourceTree = "<group>";
 		};
@@ -66,13 +102,51 @@
 			children = (
 				7AC24A5A2E35D8C000111972 /* Shikaku.app */,
 				7AC24A802E35D8C300111972 /* ShikakuTests.xctest */,
+				3952A918A5D87ABAB8837F37 /* ShikakuUITests.xctest */,
 			);
 			name = Products;
+			sourceTree = "<group>";
+		};
+		9B7C7097B24C4B6B377253EE /* iOS */ = {
+			isa = PBXGroup;
+			children = (
+				7CC0342ADEBBCF195D069CF6 /* Foundation.framework */,
+			);
+			name = iOS;
+			sourceTree = "<group>";
+		};
+		F0E3120AB4F04A57AFC85EE8 /* Frameworks */ = {
+			isa = PBXGroup;
+			children = (
+				9B7C7097B24C4B6B377253EE /* iOS */,
+			);
+			name = Frameworks;
 			sourceTree = "<group>";
 		};
 /* End PBXGroup section */
 
 /* Begin PBXNativeTarget section */
+		5F73D221FBB6FF17A7E05FBB /* ShikakuUITests */ = {
+			isa = PBXNativeTarget;
+			buildConfigurationList = B4F3718C9EF5B0C870520C86 /* Build configuration list for PBXNativeTarget "ShikakuUITests" */;
+			buildPhases = (
+				D7A1E082A75C4772BC6B3BFD /* Sources */,
+				38360B31EC8C4E68B420DCD9 /* Frameworks */,
+				90F38911710D165FA230BB2A /* Resources */,
+			);
+			buildRules = (
+			);
+			dependencies = (
+				7A4FD909EEEE1378C6C0709C /* PBXTargetDependency */,
+			);
+			fileSystemSynchronizedGroups = (
+				0245EF12912DB70CCAF58FA4 /* ShikakuUITests */,
+			);
+			name = ShikakuUITests;
+			productName = ShikakuUITests;
+			productReference = 3952A918A5D87ABAB8837F37 /* ShikakuUITests.xctest */;
+			productType = "com.apple.product-type.bundle.ui-testing";
+		};
 		7AC24A592E35D8C000111972 /* Shikaku */ = {
 			isa = PBXNativeTarget;
 			buildConfigurationList = 7AC24A662E35D8C100111972 /* Build configuration list for PBXNativeTarget "Shikaku" */;
@@ -90,6 +164,7 @@
 			);
 			name = Shikaku;
 			packageProductDependencies = (
+				A1C0FFEE0000000000000002 /* PuzzleKit */,
 			);
 			productName = Shikaku;
 			productReference = 7AC24A5A2E35D8C000111972 /* Shikaku.app */;
@@ -112,8 +187,6 @@
 				7AC24A892E35D8C300111972 /* ShikakuTests */,
 			);
 			name = ShikakuTests;
-			packageProductDependencies = (
-			);
 			productName = ShikakuTests;
 			productReference = 7AC24A802E35D8C300111972 /* ShikakuTests.xctest */;
 			productType = "com.apple.product-type.bundle.unit-test";
@@ -146,6 +219,9 @@
 			);
 			mainGroup = 7AC24A512E35D8C000111972;
 			minimizedProjectReferenceProxies = 1;
+			packageReferences = (
+				A1C0FFEE0000000000000001 /* XCRemoteSwiftPackageReference "PuzzleKit" */,
+			);
 			preferredProjectObjectVersion = 77;
 			productRefGroup = 7AC24A5B2E35D8C000111972 /* Products */;
 			projectDirPath = "";
@@ -153,6 +229,7 @@
 			targets = (
 				7AC24A592E35D8C000111972 /* Shikaku */,
 				7AC24A812E35D8C300111972 /* ShikakuTests */,
+				5F73D221FBB6FF17A7E05FBB /* ShikakuUITests */,
 			);
 		};
 /* End PBXProject section */
@@ -166,6 +243,13 @@
 			runOnlyForDeploymentPostprocessing = 0;
 		};
 		7AC24A842E35D8C300111972 /* Resources */ = {
+			isa = PBXResourcesBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+		};
+		90F38911710D165FA230BB2A /* Resources */ = {
 			isa = PBXResourcesBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
@@ -189,9 +273,22 @@
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
+		D7A1E082A75C4772BC6B3BFD /* Sources */ = {
+			isa = PBXSourcesBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+		};
 /* End PBXSourcesBuildPhase section */
 
 /* Begin PBXTargetDependency section */
+		7A4FD909EEEE1378C6C0709C /* PBXTargetDependency */ = {
+			isa = PBXTargetDependency;
+			name = Shikaku;
+			target = 7AC24A592E35D8C000111972 /* Shikaku */;
+			targetProxy = 36627C186F44056C431C4200 /* PBXContainerItemProxy */;
+		};
 		7AC24A852E35D8C300111972 /* PBXTargetDependency */ = {
 			isa = PBXTargetDependency;
 			target = 7AC24A592E35D8C000111972 /* Shikaku */;
@@ -200,6 +297,26 @@
 /* End PBXTargetDependency section */
 
 /* Begin XCBuildConfiguration section */
+		6876CC43AF6A025AB3DCCF69 /* Release */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				CLANG_ENABLE_OBJC_WEAK = NO;
+				CODE_SIGN_STYLE = Automatic;
+				DEVELOPMENT_TEAM = 8H42EZRCCP;
+				GENERATE_INFOPLIST_FILE = YES;
+				IPHONEOS_DEPLOYMENT_TARGET = 18.5;
+				PRODUCT_BUNDLE_IDENTIFIER = de.kaikunze.shikakuUITests;
+				PRODUCT_NAME = "$(TARGET_NAME)";
+				SDKROOT = iphoneos;
+				SWIFT_APPROACHABLE_CONCURRENCY = YES;
+				SWIFT_DEFAULT_ACTOR_ISOLATION = nonisolated;
+				SWIFT_VERSION = 6.0;
+				TARGETED_DEVICE_FAMILY = "1,2";
+				TEST_TARGET_NAME = Shikaku;
+				VALIDATE_PRODUCT = YES;
+			};
+			name = Release;
+		};
 		7AC24A642E35D8C100111972 /* Debug */ = {
 			isa = XCBuildConfiguration;
 			buildSettings = {
@@ -326,7 +443,7 @@
 				ASSETCATALOG_COMPILER_APPICON_NAME = AppIcon;
 				ASSETCATALOG_COMPILER_GLOBAL_ACCENT_COLOR_NAME = AccentColor;
 				CODE_SIGN_STYLE = Automatic;
-				CURRENT_PROJECT_VERSION = 4;
+				CURRENT_PROJECT_VERSION = 8;
 				DEVELOPMENT_TEAM = 8H42EZRCCP;
 				ENABLE_PREVIEWS = YES;
 				GENERATE_INFOPLIST_FILE = YES;
@@ -345,14 +462,14 @@
 				INFOPLIST_KEY_UISupportedInterfaceOrientations_iPhone = UIInterfaceOrientationPortrait;
 				IPHONEOS_DEPLOYMENT_TARGET = 18.5;
 				LD_RUNPATH_SEARCH_PATHS = "@executable_path/Frameworks";
-				MARKETING_VERSION = 1.0;
+				MARKETING_VERSION = 1.2;
 				PRODUCT_BUNDLE_IDENTIFIER = de.kaikunze.shikaku;
 				PRODUCT_NAME = "$(TARGET_NAME)";
 				SDKROOT = auto;
 				SUPPORTED_PLATFORMS = "iphoneos iphonesimulator";
 				SWIFT_EMIT_LOC_STRINGS = YES;
 				SWIFT_VERSION = 6.0;
-				TARGETED_DEVICE_FAMILY = 1;
+				TARGETED_DEVICE_FAMILY = "1,2";
 			};
 			name = Debug;
 		};
@@ -362,7 +479,7 @@
 				ASSETCATALOG_COMPILER_APPICON_NAME = AppIcon;
 				ASSETCATALOG_COMPILER_GLOBAL_ACCENT_COLOR_NAME = AccentColor;
 				CODE_SIGN_STYLE = Automatic;
-				CURRENT_PROJECT_VERSION = 4;
+				CURRENT_PROJECT_VERSION = 8;
 				DEVELOPMENT_TEAM = 8H42EZRCCP;
 				ENABLE_PREVIEWS = YES;
 				GENERATE_INFOPLIST_FILE = YES;
@@ -381,14 +498,14 @@
 				INFOPLIST_KEY_UISupportedInterfaceOrientations_iPhone = UIInterfaceOrientationPortrait;
 				IPHONEOS_DEPLOYMENT_TARGET = 18.5;
 				LD_RUNPATH_SEARCH_PATHS = "@executable_path/Frameworks";
-				MARKETING_VERSION = 1.0;
+				MARKETING_VERSION = 1.2;
 				PRODUCT_BUNDLE_IDENTIFIER = de.kaikunze.shikaku;
 				PRODUCT_NAME = "$(TARGET_NAME)";
 				SDKROOT = auto;
 				SUPPORTED_PLATFORMS = "iphoneos iphonesimulator";
 				SWIFT_EMIT_LOC_STRINGS = YES;
 				SWIFT_VERSION = 6.0;
-				TARGETED_DEVICE_FAMILY = 1;
+				TARGETED_DEVICE_FAMILY = "1,2";
 			};
 			name = Release;
 		};
@@ -397,18 +514,18 @@
 			buildSettings = {
 				BUNDLE_LOADER = "$(TEST_HOST)";
 				CODE_SIGN_STYLE = Automatic;
-				CURRENT_PROJECT_VERSION = 4;
+				CURRENT_PROJECT_VERSION = 8;
 				DEVELOPMENT_TEAM = 8H42EZRCCP;
 				GENERATE_INFOPLIST_FILE = YES;
 				IPHONEOS_DEPLOYMENT_TARGET = 18.5;
-				MARKETING_VERSION = 1.0;
+				MARKETING_VERSION = 1.2;
 				PRODUCT_BUNDLE_IDENTIFIER = de.kaikunze.shikakuTests;
 				PRODUCT_NAME = "$(TARGET_NAME)";
 				SDKROOT = iphoneos;
 				SUPPORTED_PLATFORMS = "iphoneos iphonesimulator";
 				SWIFT_EMIT_LOC_STRINGS = NO;
 				SWIFT_VERSION = 6.0;
-				TARGETED_DEVICE_FAMILY = 1;
+				TARGETED_DEVICE_FAMILY = "1,2";
 				TEST_HOST = "$(BUILT_PRODUCTS_DIR)/Shikaku.app/$(BUNDLE_EXECUTABLE_FOLDER_PATH)/Shikaku";
 			};
 			name = Debug;
@@ -418,21 +535,40 @@
 			buildSettings = {
 				BUNDLE_LOADER = "$(TEST_HOST)";
 				CODE_SIGN_STYLE = Automatic;
-				CURRENT_PROJECT_VERSION = 4;
+				CURRENT_PROJECT_VERSION = 8;
 				DEVELOPMENT_TEAM = 8H42EZRCCP;
 				GENERATE_INFOPLIST_FILE = YES;
 				IPHONEOS_DEPLOYMENT_TARGET = 18.5;
-				MARKETING_VERSION = 1.0;
+				MARKETING_VERSION = 1.2;
 				PRODUCT_BUNDLE_IDENTIFIER = de.kaikunze.shikakuTests;
 				PRODUCT_NAME = "$(TARGET_NAME)";
 				SDKROOT = iphoneos;
 				SUPPORTED_PLATFORMS = "iphoneos iphonesimulator";
 				SWIFT_EMIT_LOC_STRINGS = NO;
 				SWIFT_VERSION = 6.0;
-				TARGETED_DEVICE_FAMILY = 1;
+				TARGETED_DEVICE_FAMILY = "1,2";
 				TEST_HOST = "$(BUILT_PRODUCTS_DIR)/Shikaku.app/$(BUNDLE_EXECUTABLE_FOLDER_PATH)/Shikaku";
 			};
 			name = Release;
+		};
+		84FDFA613411D5B9D0B403CF /* Debug */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				CLANG_ENABLE_OBJC_WEAK = NO;
+				CODE_SIGN_STYLE = Automatic;
+				DEVELOPMENT_TEAM = 8H42EZRCCP;
+				GENERATE_INFOPLIST_FILE = YES;
+				IPHONEOS_DEPLOYMENT_TARGET = 18.5;
+				PRODUCT_BUNDLE_IDENTIFIER = de.kaikunze.shikakuUITests;
+				PRODUCT_NAME = "$(TARGET_NAME)";
+				SDKROOT = iphoneos;
+				SWIFT_APPROACHABLE_CONCURRENCY = YES;
+				SWIFT_DEFAULT_ACTOR_ISOLATION = nonisolated;
+				SWIFT_VERSION = 6.0;
+				TARGETED_DEVICE_FAMILY = "1,2";
+				TEST_TARGET_NAME = Shikaku;
+			};
+			name = Debug;
 		};
 /* End XCBuildConfiguration section */
 
@@ -464,7 +600,34 @@
 			defaultConfigurationIsVisible = 0;
 			defaultConfigurationName = Release;
 		};
+		B4F3718C9EF5B0C870520C86 /* Build configuration list for PBXNativeTarget "ShikakuUITests" */ = {
+			isa = XCConfigurationList;
+			buildConfigurations = (
+				6876CC43AF6A025AB3DCCF69 /* Release */,
+				84FDFA613411D5B9D0B403CF /* Debug */,
+			);
+			defaultConfigurationIsVisible = 0;
+			defaultConfigurationName = Release;
+		};
 /* End XCConfigurationList section */
+/* Begin XCRemoteSwiftPackageReference section */
+		A1C0FFEE0000000000000001 /* XCRemoteSwiftPackageReference "PuzzleKit" */ = {
+			isa = XCRemoteSwiftPackageReference;
+			repositoryURL = "https://github.com/justpuzzles/PuzzleKit";
+			requirement = {
+				kind = revision;
+				revision = 0fe4615801bb1dde3ffb4cc88d617a0848be5fcf;
+			};
+		};
+/* End XCRemoteSwiftPackageReference section */
+
+/* Begin XCSwiftPackageProductDependency section */
+		A1C0FFEE0000000000000002 /* PuzzleKit */ = {
+			isa = XCSwiftPackageProductDependency;
+			package = A1C0FFEE0000000000000001 /* XCRemoteSwiftPackageReference "PuzzleKit" */;
+			productName = PuzzleKit;
+		};
+/* End XCSwiftPackageProductDependency section */
 	};
 	rootObject = 7AC24A522E35D8C000111972 /* Project object */;
 }

@@ -34,7 +34,7 @@ nonisolated struct PrimaryButtonStyle: ButtonStyle {
             .font(.body.weight(.semibold))
             .foregroundStyle(Theme.floor)
             .padding(.vertical, Layout.s3)
-            .frame(maxWidth: .infinity)
+            .frame(maxWidth: .infinity, minHeight: 44)
             .background(Theme.ink, in: Rectangle())
             .opacity(configuration.isPressed ? 0.85 : 1)
     }
@@ -46,7 +46,7 @@ nonisolated struct SecondaryButtonStyle: ButtonStyle {
             .font(.body.weight(.medium))
             .foregroundStyle(Theme.ink)
             .padding(.vertical, Layout.s3)
-            .frame(maxWidth: .infinity)
+            .frame(maxWidth: .infinity, minHeight: 44)
             .background(
                 Rectangle()
                     .strokeBorder(Theme.hairline, lineWidth: 1)
@@ -62,6 +62,9 @@ nonisolated struct QuietButtonStyle: ButtonStyle {
             .font(.body.weight(.medium))
             .foregroundStyle(Theme.inkSoft)
             .padding(.vertical, Layout.s2)
+            // Text-only, so the label alone can be far under 44pt tall.
+            .frame(minHeight: 44)
+            .contentShape(Rectangle())
             .opacity(configuration.isPressed ? 0.7 : 1)
     }
 }

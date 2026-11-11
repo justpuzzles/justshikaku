@@ -15,6 +15,7 @@ struct GameView: View {
 
     @Environment(ProgressStore.self) private var progress
     @Environment(PuzzleCache.self) private var cache
+    @Environment(TodayClock.self) private var clock
     @Environment(\.scenePhase) private var scenePhase
     @Environment(\.dismiss) private var dismiss
 
@@ -63,6 +64,7 @@ struct GameView: View {
                 // and never owned the save slot.
                 progress.recordDailyCompleted(day: day, seconds: game.elapsedSeconds)
                 progress.awardWeekIfComplete(containing: day)
+                progress.clearDailySave()
             } else {
                 progress.clearSavedGame()
                 wasRecord = progress.recordSolve(
@@ -79,19 +81,25 @@ struct GameView: View {
                 game.tickSecond()
             }
         }
-        .onChange(of: game.board) {
-            guard !game.didWin, game.dailyDay == nil else { return }
-            progress.save(game.snapshot)
-        }
+        // Board change + scene backgrounding + disappear, never phase-change
+        // only (the family invariant).
+        .onChange(of: game.board) { persist() }
         .onChange(of: scenePhase) {
-            if scenePhase != .active && !game.didWin && game.dailyDay == nil {
-                progress.save(game.snapshot)
-            }
+            if scenePhase != .active { persist() }
         }
-        .onDisappear {
-            if !game.didWin && game.dailyDay == nil {
-                progress.save(game.snapshot)
-            }
+        .onDisappear { persist() }
+    }
+
+    /// The daily has its own slot keyed by day; free play has the Continue
+    /// slot. Both are written only once a mat is down (or when this *is* the
+    /// saved game), so laying out a room and backing out cannot erase either.
+    private func persist() {
+        guard !game.didWin else { return }
+        if let day = game.dailyDay {
+            progress.saveDaily(game.snapshot, day: day, hasProgress: game.hasMoves)
+        } else if game.featuring == nil {
+            guard game.hasMoves || progress.savedGame?.puzzle == game.puzzle else { return }
+            progress.save(game.snapshot)
         }
     }
 
@@ -102,7 +110,7 @@ struct GameView: View {
                 .foregroundStyle(Theme.inkSoft)
             Spacer()
             Text(TimeFormatting.clock(game.elapsedSeconds))
-                .font(Theme.numberFont(size: 17))
+                .numberFont(17)
                 .foregroundStyle(Theme.inkSoft)
                 .monospacedDigit()
                 .accessibilityLabel("Elapsed \(TimeFormatting.spoken(game.elapsedSeconds))")
@@ -118,7 +126,12 @@ struct GameView: View {
     }
 
     private var headerLabel: String {
-        if game.dailyDay != nil { return "Today's room · \(game.size.label)" }
+        if let day = game.dailyDay {
+            // A room opened from the week strip is that day's, not today's.
+            let name = day == clock.today ? "Today's room"
+                : day.date().formatted(.dateTime.weekday(.wide)) + "'s room"
+            return "\(name) · \(game.size.label)"
+        }
         if let technique = game.featuring {
             return "Needs \(TechniqueContent.name(for: technique)) · \(game.size.label)"
         }
@@ -160,7 +173,9 @@ private struct WinOverlay: View {
     let done: () -> Void
 
     @State private var stamped = false
+    @State private var shareImage: Image?
     @Environment(\.accessibilityReduceMotion) private var reduceMotion
+    @Environment(ProgressStore.self) private var progress
 
     var body: some View {
         VStack(spacing: Layout.s4) {
@@ -170,12 +185,15 @@ private struct WinOverlay: View {
                 .font(.subheadline)
                 .foregroundStyle(Theme.inkSoft)
             Text(TimeFormatting.clock(game.elapsedSeconds))
-                .font(Theme.numberFont(size: 34))
+                .numberFont(34)
                 .foregroundStyle(Theme.ink)
             if wasRecord {
                 Text("Your best yet on this size.")
                     .font(.subheadline)
                     .foregroundStyle(Theme.inkSoft)
+            }
+            if let day = game.dailyDay {
+                shareButton(day)
             }
             Spacer()
             Button("Done") { done() }
@@ -186,21 +204,84 @@ private struct WinOverlay: View {
         .frame(maxWidth: .infinity, maxHeight: .infinity)
         .background(Theme.floor.opacity(0.94).ignoresSafeArea())
         .onAppear {
-            withAnimation(reduceMotion ? Motion.chrome : Motion.winSweep) { stamped = true }
+            // Under Reduce Motion the stamp is simply there: no swing, no
+            // scale, no fade.
+            if reduceMotion { stamped = true } else {
+                withAnimation(Motion.winSweep) { stamped = true }
+            }
+            AccessibilityNotification.Announcement(
+                "Solved. The room is finished in \(TimeFormatting.spoken(game.elapsedSeconds))"
+                + (wasRecord ? ", your best yet on this size." : ".")).post()
         }
         .accessibilityAddTraits(.isModal)
+        // Keyed on the text: the daily is recorded by GameView's own win task,
+        // which can land after this appears, and the streak and week seal
+        // on the card must be the recorded ones.
+        .task(id: game.dailyDay.map(shareText)) {
+            guard let day = game.dailyDay else { return }
+            let card = DailyShareCard(puzzle: game.puzzle, day: day, seconds: sharedSeconds(day),
+                                      streak: sharedStreak(day), weekSealed: weekSealed(day))
+            let renderer = ImageRenderer(content: card)
+            renderer.scale = 3
+            if let image = renderer.uiImage {
+                shareImage = Image(uiImage: image)
+            }
+        }
+    }
+
+    /// The streak this solve belongs to, or nil for a missed day of the week
+    /// finished late, which records a time but doesn't extend the chain.
+    private func sharedStreak(_ day: DayKey) -> Int? {
+        progress.daily.lastCompleted == day ? progress.daily.currentStreak : nil
+    }
+
+    /// The time on record for the day. A replay of a finished daily keeps
+    /// its first time (`recordDailyCompleted` is idempotent), so the card and
+    /// the text share that one, not the replay's.
+    private func sharedSeconds(_ day: DayKey) -> Int {
+        progress.dailyTime(day) ?? game.elapsedSeconds
+    }
+
+    private func weekSealed(_ day: DayKey) -> Bool {
+        progress.weeklySeals.contains(ProgressStore.weekKey(of: day))
+    }
+
+    private func shareText(_ day: DayKey) -> String {
+        DailyShareCard.text(day: day, size: game.puzzle.size, seconds: sharedSeconds(day),
+                        streak: sharedStreak(day), weekSealed: weekSealed(day))
+    }
+
+    @ViewBuilder
+    private func shareButton(_ day: DayKey) -> some View {
+        let text = shareText(day)
+        Group {
+            if let shareImage {
+                ShareLink(item: shareImage, subject: Text("Just Shikaku daily"), message: Text(text),
+                          preview: SharePreview("Just Shikaku daily", image: shareImage)) {
+                    Label("Share", systemImage: "square.and.arrow.up")
+                }
+            } else {
+                ShareLink(item: text) {
+                    Label("Share", systemImage: "square.and.arrow.up")
+                }
+            }
+        }
+        .buttonStyle(QuietButtonStyle())
+        .accessibilityLabel("Share result")
     }
 
     private var stamp: some View {
         Text("済")
             .font(.system(size: 64, weight: .bold))
-            .foregroundStyle(Theme.ink)
+            .foregroundStyle(Theme.onShu)
+            .accessibilityHidden(true)
             .frame(width: 110, height: 110)
             .background(Theme.shu, in: Rectangle())
             .overlay(Rectangle().strokeBorder(.black.opacity(0.3), lineWidth: 1))
             .rotationEffect(.degrees(stamped ? -6 : -20))
             .scaleEffect(stamped ? 1.0 : 1.6)
             .opacity(stamped ? 1 : 0)
+            .accessibilityElement(children: .ignore)
             .accessibilityLabel("Solved")
     }
 }
@@ -208,15 +289,19 @@ private struct WinOverlay: View {
 // MARK: - Formatting
 
 nonisolated enum TimeFormatting {
+    /// "3 minutes 12 seconds", for VoiceOver (a clock reads as a ratio).
+    static func spoken(_ seconds: Int) -> String {
+        let m = seconds / 60, s = seconds % 60
+        let minutes = m == 1 ? "1 minute" : "\(m) minutes"
+        let secs = s == 1 ? "1 second" : "\(s) seconds"
+        return m == 0 ? secs : "\(minutes) \(secs)"
+    }
+
     static func clock(_ seconds: Int) -> String {
         let m = seconds / 60, s = seconds % 60
         return String(format: "%d:%02d", m, s)
     }
 
-    static func spoken(_ seconds: Int) -> String {
-        let m = seconds / 60, s = seconds % 60
-        return m > 0 ? "\(m) minutes \(s) seconds" : "\(s) seconds"
-    }
 }
 
 extension Difficulty {

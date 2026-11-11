@@ -45,6 +45,10 @@ final class ShikakuGame {
     /// clearing this would let a technique be farmed to Learned.
     private(set) var creditedClues: Set<Int> = []
 
+    /// Whether anything has been laid. A pristine board is not worth a save
+    /// slot; see `GameView.persist`.
+    var hasMoves: Bool { board != BoardState() }
+
     init(puzzle: Puzzle, size: BoardSize, difficulty: Difficulty,
          board: BoardState = BoardState(), elapsedSeconds: Int = 0, hintsUsed: Int = 0,
          dailyDay: DayKey? = nil, featuring: Technique? = nil) {
@@ -125,21 +129,83 @@ final class ShikakuGame {
             tap(at: anchor)
             return
         }
+        _ = place(preview.rect)
+    }
 
-        // Commit semantics: exactly one clue makes a meaningful mat — wrong
-        // AREA still commits and shows as a conflict (the error hint tier
-        // needs something to point at); zero or 2+ clues never means anything
-        // and is rejected outright.
-        guard let clueIndex = preview.clueIndex else {
-            rejectedPreview = preview.rect
+    /// Commit semantics, shared by the drag and by assistive input: exactly
+    /// one clue makes a meaningful mat — wrong AREA still commits and shows
+    /// as a conflict (the error hint tier needs something to point at); zero
+    /// or 2+ clues never means anything and is rejected outright.
+    private func place(_ rect: GridRect) -> AssistiveOutcome {
+        let inside = puzzle.clues.indices.filter { rect.contains(puzzle.clues[$0].cell) }
+        guard inside.count == 1 else {
+            rejectedPreview = rect
             Haptics.reject()
             Task { [weak self] in
                 try? await Task.sleep(for: .milliseconds(350))
                 self?.rejectedPreview = nil
             }
-            return
+            return .rejected(rect, clueCount: inside.count)
         }
-        commit(PlacedRect(rect: preview.rect, clueIndex: clueIndex))
+        let placed = PlacedRect(rect: rect, clueIndex: inside[0])
+        commit(placed)
+        return .placed(rect, value: puzzle.clues[inside[0]].value, conflict: areaConflict(placed))
+    }
+
+    // MARK: - Assistive input (VoiceOver, Switch Control, Voice Control)
+
+    /// What an assistive action did, for the spoken confirmation.
+    enum AssistiveOutcome: Equatable {
+        case cornerSet(Cell)
+        case placed(GridRect, value: Int, conflict: Bool)
+        case rejected(GridRect, clueCount: Int)
+        case removed(GridRect, value: Int)
+        case cancelled
+        case nothing
+    }
+
+    /// The first corner of a rectangle chosen without dragging; the next
+    /// corner finishes it. Drawn on the board as an outlined cell.
+    private(set) var pendingCorner: Cell?
+
+    /// Choose a corner: the first call remembers it, the second places the
+    /// rectangle between the two through the same rules as a drag. The same
+    /// cell twice means a one-cell rectangle.
+    func assistiveCorner(_ cell: Cell) -> AssistiveOutcome {
+        guard let first = pendingCorner else {
+            pendingCorner = cell
+            return .cornerSet(cell)
+        }
+        pendingCorner = nil
+        let rect = GridRect(minRow: min(first.row, cell.row), minCol: min(first.col, cell.col),
+                            maxRow: max(first.row, cell.row), maxCol: max(first.col, cell.col))
+        return place(rect)
+    }
+
+    func assistiveCancel() -> AssistiveOutcome {
+        guard pendingCorner != nil else { return .nothing }
+        pendingCorner = nil
+        return .cancelled
+    }
+
+    /// Lift the mat covering `cell`, as a tap inside it does.
+    func assistiveRemove(at cell: Cell) -> AssistiveOutcome {
+        guard let covering = board.coveringRect(of: cell) else { return .nothing }
+        remove(covering)
+        return .removed(covering.rect, value: puzzle.clues[covering.clueIndex].value)
+    }
+
+    /// The only rectangle that still fits the clue at `cell`, if exactly one
+    /// does — the same geometric auto-place a tap on the clue performs.
+    func onlyFit(forClueAt cell: Cell) -> GridRect? {
+        guard let index = puzzle.clueIndex(at: cell), board.coveringRect(of: cell) == nil else { return nil }
+        let fits = geometricFits(forClue: index)
+        return fits.count == 1 ? fits[0] : nil
+    }
+
+    func assistivePlaceOnlyFit(at cell: Cell) -> AssistiveOutcome {
+        guard let rect = onlyFit(forClueAt: cell) else { return .nothing }
+        return place(rect)
     }
 
     func dragCancelled() {
@@ -204,6 +270,7 @@ final class ShikakuGame {
                                  hinted: applyingHint))
         undoStack.append(.commit(added: placed, removed: displaced))
         activeHint = nil
+        pendingCorner = nil
         Haptics.matSettle()
         creditIfDeduced(placed, priorBoard: priorBoard)
         if isSolved { finishIfSolved() }
@@ -274,7 +341,8 @@ final class ShikakuGame {
     // MARK: - Judgement
 
     /// Rule-level conflict: the mat's area disagrees with its clue. Always
-    /// visible (red have/need badge) regardless of the error setting.
+    /// visible (hatched, with a have/need badge) regardless of the error
+    /// setting.
     func areaConflict(_ placed: PlacedRect) -> Bool {
         placed.rect.area != puzzle.clues[placed.clueIndex].value
     }

@@ -57,7 +57,7 @@ struct NewRoomSheet: View {
                 .font(.subheadline.weight(.medium))
                 .foregroundStyle(Theme.inkSoft)
             HStack(spacing: Layout.s2) {
-                ForEach(BoardSize.allCases) { candidate in
+                ForEach(BoardSize.offeredOnThisDevice) { candidate in
                     sizeChip(candidate)
                 }
             }
@@ -77,18 +77,18 @@ struct NewRoomSheet: View {
         } label: {
             HStack(spacing: 3) {
                 Text(candidate.label)
-                    .font(Theme.numberFont(size: 15))
+                    .numberFont(15)
                 if !available {
                     Image(systemName: "lock")
                         .font(.caption2)
                 }
             }
-            .frame(maxWidth: .infinity)
-            .padding(.vertical, Layout.s2)
+            .frame(maxWidth: .infinity, minHeight: 44)
             .background(chipFill(selected))
             .foregroundStyle(selected ? Theme.floor : Theme.ink)
         }
         .accessibilityLabel("\(candidate.label)\(available ? "" : ", locked")")
+        .accessibilityAddTraits(selected ? .isSelected : [])
     }
 
     private var difficultyPicker: some View {
@@ -119,12 +119,12 @@ struct NewRoomSheet: View {
                 .font(.footnote.weight(.medium))
                 .lineLimit(1)
                 .minimumScaleFactor(0.8)
-                .frame(maxWidth: .infinity)
-                .padding(.vertical, Layout.s2)
+                .frame(maxWidth: .infinity, minHeight: 44)
                 .background(chipFill(selected))
                 .foregroundStyle(selected ? Theme.floor : Theme.ink)
         }
-        .accessibilityLabel("\(tier.label)\(selected ? ", selected" : "")")
+        .accessibilityLabel(tier.label)
+        .accessibilityAddTraits(selected ? .isSelected : [])
     }
 
     /// Selected chips are cut bone; unselected ones are timber. Square, like

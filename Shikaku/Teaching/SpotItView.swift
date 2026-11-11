@@ -66,7 +66,7 @@ struct SpotItView: View {
                 .foregroundStyle(Theme.inkSoft)
             Spacer()
             Text("\(cleared) of \(Self.runLength)")
-                .font(Theme.numberFont(size: 15))
+                .numberFont(15)
                 .foregroundStyle(Theme.inkSoft)
             strikesView
         }

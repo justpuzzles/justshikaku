@@ -27,7 +27,7 @@ Shikaku/
 │   ├── Persistence/    # ProgressStore
 │   └── Store/          # the one-time unlock
 ├── ShikakuTests/
-├── ShikakuUITests/
+├── ShikakuUITests/     # performAccessibilityAudit per screen (docs/ACCESSIBILITY.md)
 ├── Tools/EngineCheck/  # CLI harness — OUTSIDE Shikaku/ (top-level code can't be in an app target)
 ├── StoreKit/Shikaku.storekit   # OUTSIDE Shikaku/ or it ships in the bundle
 └── docs/
@@ -234,7 +234,7 @@ Two verification paths, both required (the harness compiles without MainActor
 default isolation and cannot see the app target's concurrency errors):
 
 ```bash
-swiftc -O -o /tmp/enginecheck Shikaku/Engine/*.swift Tools/EngineCheck/*.swift && /tmp/enginecheck
+swiftc -O -o /tmp/enginecheck Shikaku/Engine/*.swift "$(Tools/puzzlekit-sources.sh)"/*.swift Tools/EngineCheck/*.swift && /tmp/enginecheck
 xcodebuild test -project Shikaku.xcodeproj -scheme Shikaku \
   -destination 'platform=iOS Simulator,name=iPhone 16 Pro,OS=18.5'
 ```

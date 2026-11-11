@@ -10,7 +10,9 @@
 import SwiftUI
 
 struct StatsView: View {
+    @Environment(\.dynamicTypeSize) private var typeSize
     @Environment(ProgressStore.self) private var progress
+    @Environment(TodayClock.self) private var clock
     @Environment(EntitlementStore.self) private var entitlements
     @Environment(PaywallPresenter.self) private var paywall
     @Environment(MasteryTracker.self) private var mastery
@@ -37,7 +39,7 @@ struct StatsView: View {
     private var dailySection: some View {
         Section("Today's room") {
             LabeledContent("Streak",
-                           value: "\(progress.displayStreak(today: DayKey(date: .now)))")
+                           value: "\(progress.displayStreak(today: clock.today))")
             LabeledContent("Best streak", value: "\(progress.daily.bestStreak)")
             LabeledContent("Rooms finished", value: "\(progress.daily.completedTimes.count)")
         }
@@ -45,16 +47,34 @@ struct StatsView: View {
 
     private var bestTimesSection: some View {
         Section("Best times") {
-            ForEach(BoardSize.allCases) { size in
+            ForEach(BoardSize.offeredOnThisDevice) { size in
                 bestTimesRow(size: size)
             }
         }
     }
 
+    @ViewBuilder
     private func bestTimesRow(size: BoardSize) -> some View {
+        if typeSize.isAccessibilitySize {
+            // Five columns of times can't fit at accessibility sizes: one
+            // line per difficulty instead.
+            VStack(alignment: .leading, spacing: Layout.s1) {
+                Text(size.label)
+                    .numberFont(15)
+                    .foregroundStyle(Theme.ink)
+                ForEach(Difficulty.allCases) { tier in
+                    LabeledContent(tier.label, value: bestLabel(size: size, tier: tier))
+                }
+            }
+        } else {
+            compactBestTimesRow(size: size)
+        }
+    }
+
+    private func compactBestTimesRow(size: BoardSize) -> some View {
         HStack {
             Text(size.label)
-                .font(Theme.numberFont(size: 15))
+                .numberFont(15)
                 .foregroundStyle(Theme.ink)
                 .frame(width: 64, alignment: .leading)
             Spacer()
@@ -64,7 +84,7 @@ struct StatsView: View {
                         .font(.caption2)
                         .foregroundStyle(Theme.inkSoft)
                     Text(bestLabel(size: size, tier: tier))
-                        .font(Theme.numberFont(size: 12))
+                        .numberFont(12)
                         .foregroundStyle(Theme.ink)
                 }
                 .frame(maxWidth: .infinity)
@@ -81,7 +101,7 @@ struct StatsView: View {
     private var solvesSection: some View {
         Section("Solved rooms") {
             LabeledContent("Total", value: "\(progress.stats.totalSolves)")
-            ForEach(BoardSize.allCases) { size in
+            ForEach(BoardSize.offeredOnThisDevice) { size in
                 let count = Difficulty.allCases.reduce(0) {
                     $0 + (progress.stats.solvesBySizeAndDifficulty[
                         ProgressStore.SolveKey(size: size, difficulty: $1)] ?? 0)
@@ -125,7 +145,7 @@ struct StatsView: View {
         let stage = mastery.stage(for: technique)
         return LabeledContent {
             Text(stageLabel(stage, unaided: record?.unaided ?? 0))
-                .font(Theme.numberFont(size: 13))
+                .numberFont(13)
         } label: {
             Text(TechniqueContent.name(for: technique))
                 .foregroundStyle(stage == .unseen ? Theme.inkSoft : Theme.ink)

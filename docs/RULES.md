@@ -35,7 +35,8 @@ game is technique.
 | 5×5 | free | tutorial + gentle play |
 | 7×7 | free | the free tier's ceiling |
 | 10×10 | paid | |
-| 12×12 | paid | the phone ceiling (~27pt cells on a 375pt width); 15×15 deferred to an iPad release |
+| 12×12 | paid | the phone ceiling (~27pt cells on a 375pt width) |
+| 15×15 | paid, iPad only | added in 1.1 with the iPad release; 2.4M node budget (`ShikakuGenerator.nodeBudget(for:)`) |
 
 Difficulty tiers: **gentle / steady / sharp / deep / severe** (family naming).
 Difficulty is **never** gated by tier — a free player can play severe on 7×7

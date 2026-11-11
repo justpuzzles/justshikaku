@@ -35,6 +35,12 @@ struct BoardView: View {
             .gesture(dragGesture(geo: geo))
         }
         .aspectRatio(1, contentMode: .fit)
+        // The drawing is many positioned views; VoiceOver, Switch Control
+        // and Voice Control get a plain grid of cells instead, each able to
+        // place, remove and finish rectangles without a drag
+        // (BoardAccessibility.swift).
+        .accessibilityElement(children: .contain)
+        .accessibilityChildren { BoardCellsAccessibility(game: game) }
     }
 
     private func dragGesture(geo: BoardGeometry) -> some Gesture {
@@ -71,7 +77,7 @@ private struct LatticeView: View {
     }
 }
 
-private struct LatticeShape: Shape {
+private nonisolated struct LatticeShape: Shape {
     let geo: BoardGeometry
 
     func path(in _: CGRect) -> Path {
@@ -89,7 +95,7 @@ private struct LatticeShape: Shape {
     }
 }
 
-private struct LatticeDots: Shape {
+private nonisolated struct LatticeDots: Shape {
     let geo: BoardGeometry
 
     func path(in _: CGRect) -> Path {
@@ -164,8 +170,6 @@ private struct MatView: View {
             withAnimation(reduceMotion ? nil : Motion.settle) { settled = true }
             withAnimation(reduceMotion ? nil : Motion.stringSnap) { snapping = false }
         }
-        .accessibilityElement()
-        .accessibilityLabel(matAccessibilityLabel(conflict: conflict))
     }
 
     @ViewBuilder
@@ -215,18 +219,10 @@ private struct MatView: View {
             .padding(.vertical, 2)
             .background(Theme.floor.opacity(0.92), in: Rectangle())
     }
-
-    private func matAccessibilityLabel(conflict: Bool) -> String {
-        let value = game.puzzle.clues[placed.clueIndex].value
-        let shape = "\(placed.rect.width) by \(placed.rect.height)"
-        return conflict
-            ? "Mat \(shape), holds \(placed.rect.area) cells but its clue needs \(value)"
-            : "Mat \(shape) for the \(value)"
-    }
 }
 
 /// Weave stripes along the long axis, clipped by the mat that overlays this.
-private struct WeaveShape: Shape {
+private nonisolated struct WeaveShape: Shape {
     let horizontal: Bool
     let isSquare: Bool
 
@@ -302,8 +298,6 @@ private struct ClueNumeral: View {
         Numeral(value: clue.value, size: geo.clueSize, relaxed: isSatisfied)
             .position(center)
             .animation(Motion.chrome, value: isSatisfied)
-            .accessibilityElement()
-            .accessibilityLabel("Clue \(clue.value)\(isSatisfied ? ", housed" : "")")
     }
 }
 
@@ -319,6 +313,18 @@ private struct PreviewLayer: View {
         }
         if let rejected = game.rejectedPreview {
             RejectedView(rect: rejected, geo: geo)
+        }
+        // The first corner chosen without dragging (VoiceOver, Switch
+        // Control), waiting for the second.
+        if let corner = game.pendingCorner {
+            let frame: CGRect = geo.rect(for: GridRect(minRow: corner.row, minCol: corner.col,
+                                                       maxRow: corner.row, maxCol: corner.col))
+            Rectangle()
+                .strokeBorder(Theme.inkLine, style: StrokeStyle(lineWidth: 2, dash: [5, 4]))
+                .frame(width: frame.width, height: frame.height)
+                .position(x: frame.midX, y: frame.midY)
+                .allowsHitTesting(false)
+                .accessibilityHidden(true)
         }
     }
 }

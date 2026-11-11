@@ -15,8 +15,11 @@ import SwiftUI
 struct DailyCard: View {
     @Binding var path: [Route]
     @Environment(ProgressStore.self) private var progress
+    @Environment(TodayClock.self) private var clock
 
-    private var today: DayKey { DayKey(date: .now) }
+    /// From the app's `TodayClock`, which follows midnight, time-zone changes
+    /// and the app coming back to the front (1.1 kept its own copy here).
+    private var today: DayKey { clock.today }
 
     var body: some View {
         let day = today
@@ -26,7 +29,7 @@ struct DailyCard: View {
             Haptics.previewTick()
             path.append(.daily(day))
         } label: {
-            HStack(spacing: Layout.s4) {
+            CardRow {
                 sealGlyph(done: done)
                 VStack(alignment: .leading, spacing: Layout.s1) {
                     Text(done ? "Today's room is finished" : todaysLine)
@@ -74,10 +77,11 @@ struct DailyCard: View {
     private func sealGlyph(done: Bool) -> some View {
         Text("今")
             .font(.system(size: 20, weight: .bold))
-            .foregroundStyle(done ? Theme.ink : Theme.inkSoft)
+            .foregroundStyle(done ? Theme.onShu : Theme.inkSoft)
             .frame(width: 40, height: 40)
             .background(done ? AnyShapeStyle(Theme.shu) : AnyShapeStyle(Theme.frame))
             .overlay(Rectangle().strokeBorder(Theme.hairline, lineWidth: 1))
+            .accessibilityHidden(true)
     }
 }
 
@@ -87,6 +91,7 @@ struct DailyHostView: View {
     let day: DayKey
 
     @Environment(MasteryTracker.self) private var mastery
+    @Environment(ProgressStore.self) private var progress
     @State private var game: ShikakuGame?
 
     var body: some View {
@@ -100,6 +105,17 @@ struct DailyHostView: View {
         .task {
             guard game == nil else { return }
             let day = day
+            // Left half-finished earlier today: pick it up, clock and all.
+            if let saved = progress.dailySnapshot(for: day) {
+                let plan = DailySeed.spec(for: day)
+                let resumed = ShikakuGame(puzzle: saved.puzzle, size: plan.size,
+                                          difficulty: plan.difficulty, board: saved.board,
+                                          elapsedSeconds: saved.elapsedSeconds,
+                                          hintsUsed: saved.hintsUsed, dailyDay: day)
+                resumed.mastery = mastery
+                game = resumed
+                return
+            }
             let result = await Task.detached(priority: .userInitiated) {
                 DailySeed.generate(for: day)
             }.value

@@ -28,7 +28,7 @@ nonisolated enum PaidFeature: String, CaseIterable, Sendable, Identifiable {
     var pitch: String {
         switch self {
         case .largerBoards:
-            "The 10 by 10 and 12 by 12 rooms, where the arguments run longer and the plan gets interesting."
+            "The 10 by 10 and 12 by 12 rooms, and 15 by 15 on iPad, where the arguments run longer and the plan gets interesting."
         case .lessons:
             "Five more technique lessons: the whole path from the first easy deduction to the counting endgame."
         case .practiceDrills:
@@ -36,7 +36,8 @@ nonisolated enum PaidFeature: String, CaseIterable, Sendable, Identifiable {
         case .teachingHints:
             "The full hint ladder with the drawn argument. These hints show you why, instead of only telling you something is wrong."
         case .fullStats:
-            "Best times, solve history, and a seal for every technique, cut only when you earn it."
+            // Best times are free (FeatureGate.isFullStatsAvailable); only history and mastery are sold.
+            "Your solve history, how your hint use falls as the techniques land, and a seal for every technique, cut only when you earn it."
         }
     }
 }
