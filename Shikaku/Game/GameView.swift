@@ -15,6 +15,7 @@ struct GameView: View {
 
     @Environment(ProgressStore.self) private var progress
     @Environment(PuzzleCache.self) private var cache
+    @Environment(TodayClock.self) private var clock
     @Environment(\.scenePhase) private var scenePhase
     @Environment(\.dismiss) private var dismiss
 
@@ -125,7 +126,12 @@ struct GameView: View {
     }
 
     private var headerLabel: String {
-        if game.dailyDay != nil { return "Today's room · \(game.size.label)" }
+        if let day = game.dailyDay {
+            // A room opened from the week strip is that day's, not today's.
+            let name = day == clock.today ? "Today's room"
+                : day.date().formatted(.dateTime.weekday(.wide)) + "'s room"
+            return "\(name) · \(game.size.label)"
+        }
         if let technique = game.featuring {
             return "Needs \(TechniqueContent.name(for: technique)) · \(game.size.label)"
         }
